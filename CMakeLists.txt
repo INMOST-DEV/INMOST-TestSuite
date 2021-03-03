@@ -120,6 +120,46 @@ install(TARGETS test_advdiff_test03 EXPORT projects-targets RUNTIME DESTINATION 
 install(TARGETS test_advdiff_fvca5_test7 EXPORT projects-targets RUNTIME DESTINATION bin/TestSuite)
 install(TARGETS test_advdiff_wugao_test3 EXPORT projects-targets RUNTIME DESTINATION bin/TestSuite)
 
+# Tests for linear elasticity
+
+add_executable(test_elastic_analytic1 elastic_analytic1.cpp)
+add_executable(test_elastic_analytic2 elastic_analytic2.cpp)
+add_executable(test_elastic_analytic3 elastic_analytic3.cpp)
+add_executable(test_elastic_lshaped elastic_lshaped.cpp)
+add_executable(test_elastic_membrane1 elastic_membrane1.cpp)
+add_executable(test_elastic_membrane2 elastic_membrane2.cpp)
+add_executable(test_elastic_infsphere elastic_infsphere.cpp)
+add_executable(test_elastic_perforated elastic_perforated.cpp)
+add_executable(test_elastic_beam_shear elastic_beam_shear.cpp)
+add_executable(test_elastic_beam_torsion elastic_beam_torsion.cpp)
+add_executable(test_elastic_contact1 elastic_contact1.cpp)
+add_executable(test_elastic_contact2 elastic_contact2.cpp)
+
+target_link_libraries(test_elastic_analytic1 ${INMOST_LIBRARIES})
+target_link_libraries(test_elastic_analytic2 ${INMOST_LIBRARIES})
+target_link_libraries(test_elastic_analytic3 ${INMOST_LIBRARIES})
+target_link_libraries(test_elastic_lshaped ${INMOST_LIBRARIES})
+target_link_libraries(test_elastic_membrane1 ${INMOST_LIBRARIES})
+target_link_libraries(test_elastic_membrane2 ${INMOST_LIBRARIES})
+target_link_libraries(test_elastic_infsphere ${INMOST_LIBRARIES})
+target_link_libraries(test_elastic_perforated ${INMOST_LIBRARIES})
+target_link_libraries(test_elastic_beam_shear ${INMOST_LIBRARIES})
+target_link_libraries(test_elastic_beam_torsion ${INMOST_LIBRARIES})
+target_link_libraries(test_elastic_contact1 ${INMOST_LIBRARIES})
+target_link_libraries(test_elastic_contact2 ${INMOST_LIBRARIES})
+
+install(TARGETS test_elastic_analytic1 EXPORT projects-targets RUNTIME DESTINATION bin/TestSuite)
+install(TARGETS test_elastic_analytic2 EXPORT projects-targets RUNTIME DESTINATION bin/TestSuite)
+install(TARGETS test_elastic_analytic3 EXPORT projects-targets RUNTIME DESTINATION bin/TestSuite)
+install(TARGETS test_elastic_lshaped EXPORT projects-targets RUNTIME DESTINATION bin/TestSuite)
+install(TARGETS test_elastic_membrane1 EXPORT projects-targets RUNTIME DESTINATION bin/TestSuite)
+install(TARGETS test_elastic_membrane2 EXPORT projects-targets RUNTIME DESTINATION bin/TestSuite)
+install(TARGETS test_elastic_infsphere EXPORT projects-targets RUNTIME DESTINATION bin/TestSuite)
+install(TARGETS test_elastic_perforated EXPORT projects-targets RUNTIME DESTINATION bin/TestSuite)
+install(TARGETS test_elastic_beam_shear EXPORT projects-targets RUNTIME DESTINATION bin/TestSuite)
+install(TARGETS test_elastic_beam_torsion EXPORT projects-targets RUNTIME DESTINATION bin/TestSuite)
+install(TARGETS test_elastic_contact1 EXPORT projects-targets RUNTIME DESTINATION bin/TestSuite)
+install(TARGETS test_elastic_contact2 EXPORT projects-targets RUNTIME DESTINATION bin/TestSuite)
 
 #manipulation of grid and tensor
 
