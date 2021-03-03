@@ -6,7 +6,7 @@ find_package(inmost REQUIRED)
 link_directories(${INMOST_LIBRARY_DIRS})
 include_directories(${INMOST_INCLUDE_DIRS})
 add_definitions(${INMOST_DEFINITIONS})
-message(${INMOST_INCLUDE_DIRS})
+#message(${INMOST_INCLUDE_DIRS})
 
 #Navier-Stokes tests
 
@@ -170,7 +170,8 @@ install(TARGETS test_transform_grid EXPORT projects-targets RUNTIME DESTINATION 
 
 
 
-
+#poromechanics
+add_subdirectory(poromech_test)
 
 install(FILES readme.txt DESTINATION bin/TestSuite)
 
