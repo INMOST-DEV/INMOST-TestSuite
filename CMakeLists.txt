@@ -18,21 +18,15 @@ add_executable(test_ns_turek ns_turek.cpp)
 add_executable(test_ns_crevice ns_crevice.cpp)
 add_executable(test_ns_ventrapp ns_ventrapp.cpp)
 
-target_link_libraries(test_ns_linear ${INMOST_LIBRARIES})
-target_link_libraries(test_ns_cavity ${INMOST_LIBRARIES})
-target_link_libraries(test_ns_pousielle ${INMOST_LIBRARIES})
-target_link_libraries(test_ns_backward_step ${INMOST_LIBRARIES})
-target_link_libraries(test_ns_turek ${INMOST_LIBRARIES})
-target_link_libraries(test_ns_crevice ${INMOST_LIBRARIES})
-target_link_libraries(test_ns_ventrapp ${INMOST_LIBRARIES})
-
-install(TARGETS test_ns_linear EXPORT projects-targets RUNTIME DESTINATION bin/TestSuite)
-install(TARGETS test_ns_cavity EXPORT projects-targets RUNTIME DESTINATION bin/TestSuite)
-install(TARGETS test_ns_pousielle EXPORT projects-targets RUNTIME DESTINATION bin/TestSuite)
-install(TARGETS test_ns_turek EXPORT projects-targets RUNTIME DESTINATION bin/TestSuite)
-install(TARGETS test_ns_crevice EXPORT projects-targets RUNTIME DESTINATION bin/TestSuite)
-install(TARGETS test_ns_backward_step EXPORT projects-targets RUNTIME DESTINATION bin/TestSuite)
-
+list(APPEND EXECS 
+	test_ns_linear 
+	test_ns_cavity 
+	test_ns_pousielle
+	test_ns_backward_step
+	test_ns_turek
+	test_ns_crevice
+	test_ns_ventrapp)
+	
 #Anisotropic diffusion tests
 
 add_executable(test_diff_single_well single_well.cpp)
@@ -56,48 +50,27 @@ add_executable(test_diff_edwards_3dtest4 edwards_3dtest4.cpp)
 add_executable(test_diff_discontinuous_4zones discontinuous_4zones.cpp)
 add_executable(test_diff_linear_sol linear_sol.cpp)
 
-target_link_libraries(test_diff_single_well ${INMOST_LIBRARIES})
-target_link_libraries(test_diff_circular_perm ${INMOST_LIBRARIES})
-target_link_libraries(test_diff_channels_perm ${INMOST_LIBRARIES})
-target_link_libraries(test_diff_locking_perm ${INMOST_LIBRARIES})
-target_link_libraries(test_diff_fvca5_test1_1 ${INMOST_LIBRARIES})
-target_link_libraries(test_diff_fvca5_test1_2 ${INMOST_LIBRARIES})
-target_link_libraries(test_diff_fvca5_test3 ${INMOST_LIBRARIES})
-target_link_libraries(test_diff_fvca5_test4 ${INMOST_LIBRARIES})
-target_link_libraries(test_diff_fvca5_test5 ${INMOST_LIBRARIES})
-target_link_libraries(test_diff_fvca5_test6 ${INMOST_LIBRARIES})
-target_link_libraries(test_diff_fvca5_test7 ${INMOST_LIBRARIES})
-target_link_libraries(test_diff_fvca5_test8 ${INMOST_LIBRARIES})
-target_link_libraries(test_diff_fvca5_test9 ${INMOST_LIBRARIES})
-target_link_libraries(test_diff_wugao_test2 ${INMOST_LIBRARIES})
-target_link_libraries(test_diff_wugao_test3 ${INMOST_LIBRARIES})
-target_link_libraries(test_diff_wugao_test4 ${INMOST_LIBRARIES})
-target_link_libraries(test_diff_two_wells_3d ${INMOST_LIBRARIES})
-target_link_libraries(test_diff_edwards_3dtest4 ${INMOST_LIBRARIES})
-target_link_libraries(test_diff_discontinuous_4zones ${INMOST_LIBRARIES})
-target_link_libraries(test_diff_linear_sol ${INMOST_LIBRARIES})
-
-
-install(TARGETS test_diff_single_well EXPORT projects-targets RUNTIME DESTINATION bin/TestSuite)
-install(TARGETS test_diff_circular_perm EXPORT projects-targets RUNTIME DESTINATION bin/TestSuite)
-install(TARGETS test_diff_channels_perm EXPORT projects-targets RUNTIME DESTINATION bin/TestSuite)
-install(TARGETS test_diff_locking_perm EXPORT projects-targets RUNTIME DESTINATION bin/TestSuite)
-install(TARGETS test_diff_fvca5_test1_1 EXPORT projects-targets RUNTIME DESTINATION bin/TestSuite)
-install(TARGETS test_diff_fvca5_test1_2 EXPORT projects-targets RUNTIME DESTINATION bin/TestSuite)
-install(TARGETS test_diff_fvca5_test3 EXPORT projects-targets RUNTIME DESTINATION bin/TestSuite)
-install(TARGETS test_diff_fvca5_test4 EXPORT projects-targets RUNTIME DESTINATION bin/TestSuite)
-install(TARGETS test_diff_fvca5_test5 EXPORT projects-targets RUNTIME DESTINATION bin/TestSuite)
-install(TARGETS test_diff_fvca5_test6 EXPORT projects-targets RUNTIME DESTINATION bin/TestSuite)
-install(TARGETS test_diff_fvca5_test7 EXPORT projects-targets RUNTIME DESTINATION bin/TestSuite)
-install(TARGETS test_diff_fvca5_test8 EXPORT projects-targets RUNTIME DESTINATION bin/TestSuite)
-install(TARGETS test_diff_fvca5_test9 EXPORT projects-targets RUNTIME DESTINATION bin/TestSuite)
-install(TARGETS test_diff_wugao_test2 EXPORT projects-targets RUNTIME DESTINATION bin/TestSuite)
-install(TARGETS test_diff_wugao_test3 EXPORT projects-targets RUNTIME DESTINATION bin/TestSuite)
-install(TARGETS test_diff_wugao_test4 EXPORT projects-targets RUNTIME DESTINATION bin/TestSuite)
-install(TARGETS test_diff_two_wells_3d EXPORT projects-targets RUNTIME DESTINATION bin/TestSuite)
-install(TARGETS test_diff_edwards_3dtest4 EXPORT projects-targets RUNTIME DESTINATION bin/TestSuite)
-install(TARGETS test_diff_discontinuous_4zones EXPORT projects-targets RUNTIME DESTINATION bin/TestSuite)
-install(TARGETS test_diff_linear_sol EXPORT projects-targets RUNTIME DESTINATION bin/TestSuite)
+list(APPEND EXECS 
+	test_diff_single_well 
+	test_diff_circular_perm 
+	test_diff_channels_perm
+	test_diff_locking_perm
+	test_diff_fvca5_test1_1
+	test_diff_fvca5_test1_2
+	test_diff_fvca5_test3
+	test_diff_fvca5_test4
+	test_diff_fvca5_test5
+	test_diff_fvca5_test6
+	test_diff_fvca5_test7
+	test_diff_fvca5_test8
+	test_diff_fvca5_test9
+	test_diff_wugao_test2
+	test_diff_wugao_test3
+	test_diff_wugao_test4
+	test_diff_two_wells_3d
+	test_diff_edwards_3dtest4
+	test_diff_discontinuous_4zones
+	test_diff_linear_sol)
 
 # Advection-diffusion tests
 
@@ -108,19 +81,13 @@ add_executable(test_advdiff_test03 adv03.cpp)
 add_executable(test_advdiff_fvca5_test7 fvca5_test7_with_advection.cpp)
 add_executable(test_advdiff_wugao_test3 wugao_test3_unsymmetric_with_advection.cpp)
 
-target_link_libraries(test_advdiff_test00 ${INMOST_LIBRARIES})
-target_link_libraries(test_advdiff_test01 ${INMOST_LIBRARIES})
-target_link_libraries(test_advdiff_test02 ${INMOST_LIBRARIES})
-target_link_libraries(test_advdiff_test03 ${INMOST_LIBRARIES})
-target_link_libraries(test_advdiff_fvca5_test7 ${INMOST_LIBRARIES})
-target_link_libraries(test_advdiff_wugao_test3 ${INMOST_LIBRARIES})
-
-install(TARGETS test_advdiff_test00 EXPORT projects-targets RUNTIME DESTINATION bin/TestSuite)
-install(TARGETS test_advdiff_test01 EXPORT projects-targets RUNTIME DESTINATION bin/TestSuite)
-install(TARGETS test_advdiff_test02 EXPORT projects-targets RUNTIME DESTINATION bin/TestSuite)
-install(TARGETS test_advdiff_test03 EXPORT projects-targets RUNTIME DESTINATION bin/TestSuite)
-install(TARGETS test_advdiff_fvca5_test7 EXPORT projects-targets RUNTIME DESTINATION bin/TestSuite)
-install(TARGETS test_advdiff_wugao_test3 EXPORT projects-targets RUNTIME DESTINATION bin/TestSuite)
+list(APPEND EXECS 
+	test_advdiff_test00 
+	test_advdiff_test01 
+	test_advdiff_test02
+	test_advdiff_test03
+	test_advdiff_fvca5_test7
+	test_advdiff_wugao_test3)
 
 # Tests for linear elasticity
 
@@ -137,38 +104,31 @@ add_executable(test_elastic_beam_torsion elastic_beam_torsion.cpp)
 add_executable(test_elastic_contact1 elastic_contact1.cpp)
 add_executable(test_elastic_contact2 elastic_contact2.cpp)
 
-target_link_libraries(test_elastic_analytic1 ${INMOST_LIBRARIES})
-target_link_libraries(test_elastic_analytic2 ${INMOST_LIBRARIES})
-target_link_libraries(test_elastic_analytic3 ${INMOST_LIBRARIES})
-target_link_libraries(test_elastic_lshaped ${INMOST_LIBRARIES})
-target_link_libraries(test_elastic_membrane1 ${INMOST_LIBRARIES})
-target_link_libraries(test_elastic_membrane2 ${INMOST_LIBRARIES})
-target_link_libraries(test_elastic_infsphere ${INMOST_LIBRARIES})
-target_link_libraries(test_elastic_perforated ${INMOST_LIBRARIES})
-target_link_libraries(test_elastic_beam_shear ${INMOST_LIBRARIES})
-target_link_libraries(test_elastic_beam_torsion ${INMOST_LIBRARIES})
-target_link_libraries(test_elastic_contact1 ${INMOST_LIBRARIES})
-target_link_libraries(test_elastic_contact2 ${INMOST_LIBRARIES})
-
-install(TARGETS test_elastic_analytic1 EXPORT projects-targets RUNTIME DESTINATION bin/TestSuite)
-install(TARGETS test_elastic_analytic2 EXPORT projects-targets RUNTIME DESTINATION bin/TestSuite)
-install(TARGETS test_elastic_analytic3 EXPORT projects-targets RUNTIME DESTINATION bin/TestSuite)
-install(TARGETS test_elastic_lshaped EXPORT projects-targets RUNTIME DESTINATION bin/TestSuite)
-install(TARGETS test_elastic_membrane1 EXPORT projects-targets RUNTIME DESTINATION bin/TestSuite)
-install(TARGETS test_elastic_membrane2 EXPORT projects-targets RUNTIME DESTINATION bin/TestSuite)
-install(TARGETS test_elastic_infsphere EXPORT projects-targets RUNTIME DESTINATION bin/TestSuite)
-install(TARGETS test_elastic_perforated EXPORT projects-targets RUNTIME DESTINATION bin/TestSuite)
-install(TARGETS test_elastic_beam_shear EXPORT projects-targets RUNTIME DESTINATION bin/TestSuite)
-install(TARGETS test_elastic_beam_torsion EXPORT projects-targets RUNTIME DESTINATION bin/TestSuite)
-install(TARGETS test_elastic_contact1 EXPORT projects-targets RUNTIME DESTINATION bin/TestSuite)
-install(TARGETS test_elastic_contact2 EXPORT projects-targets RUNTIME DESTINATION bin/TestSuite)
+list(APPEND EXECS 
+	test_elastic_analytic1 
+	test_elastic_analytic2 
+	test_elastic_analytic3
+	test_elastic_lshaped
+	test_elastic_membrane1
+	test_elastic_membrane2
+	test_elastic_infsphere
+	test_elastic_perforated
+	test_elastic_beam_shear
+	test_elastic_beam_torsion
+	test_elastic_contact1
+	test_elastic_contact2)
 
 #manipulation of grid and tensor
 
 add_executable(test_transform_grid transform_grid.cpp)
 
-target_link_libraries(test_transform_grid ${INMOST_LIBRARIES})
-install(TARGETS test_transform_grid EXPORT projects-targets RUNTIME DESTINATION bin/TestSuite)
+list(APPEND EXECS 
+	test_transform_grid)
+
+foreach(EXEC ${EXECS})
+	target_link_libraries(${EXEC} ${INMOST_LIBRARIES})
+	install(TARGETS ${EXEC} EXPORT projects-targets RUNTIME DESTINATION bin/TestSuite)
+endforeach(EXEC ${EXECS})
 
 
 
