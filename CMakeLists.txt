@@ -15,6 +15,7 @@ add_executable(test_ns_cavity ns_cavity.cpp)
 add_executable(test_ns_pousielle ns_pousielle.cpp)
 add_executable(test_ns_backward_step ns_backward_step.cpp)
 add_executable(test_ns_turek ns_turek.cpp)
+add_executable(test_ns_ethierstienman ns_ethiersteinman.cpp)
 add_executable(test_ns_crevice ns_crevice.cpp)
 add_executable(test_ns_ventrapp ns_ventrapp.cpp)
 
@@ -24,6 +25,7 @@ list(APPEND EXECS
 	test_ns_pousielle
 	test_ns_backward_step
 	test_ns_turek
+	test_ns_ethierstienman
 	test_ns_crevice
 	test_ns_ventrapp)
 	
