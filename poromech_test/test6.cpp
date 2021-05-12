@@ -19,6 +19,8 @@ typedef Storage::real_array real_array;
 typedef Storage::reference_array ref_array;
 
 const int nqmax = 5000;
+const int nqmax_ = 500;
+const int nqmax2 = 2*nqmax_*nqmax_;
 const double pi = 3.1415926535897932384626433832795;
 const double errtol = 1e-7;
 
@@ -26,11 +28,11 @@ double Test6::Gravity() const {return 0.0;}
 double Test6::FluidDensity() const {return 1;}
 double Test6::FluidViscosity() const {return 1;}
 double Test6::SolidDensity() const {return 1;}
-double Test6::Porosity(double _x, double _y, double _z) const {return 1;}
+double Test6::Porosity(double _x, double _y, double _z) const {return 0.5;}
 double Test6::InverseBiotModulus(double _x, double _y, double _z) const { return M ? 1.0/M : 0.0; }
 
 Test6::Test6()
-: E(1.0e+4), nu(0.25), a(1), b(1), K(0.001), alpha(1.0), aQ(2), 
+: E(1.0e+3), nu(0.25), a(1), b(1), K(0.01), alpha(1.0), aQ(0.1), 
   x0(0.25), y0(0.25), M(0), //q0(0.03), 
   //G(E/(2.0*(1+nu))),m(1.0/(1-2*nu)),lambda_f(K/mu),chi(lambda_f*M)
 	lambda(E* nu / (1 + nu) / (1 - 2 * nu)), mu(E / (1 + nu) / 2.0),
@@ -66,32 +68,39 @@ hMatrix Test6::Displacement(double _x, double _y, double _z, double _t) const
 	//double t_coef0 = -1.0 / ( alpha * alpha / (G * lambda_f * (m + 1)) + (chi ? 1.0/chi : 0.0));
 	double t_coef0 = (lambda + 2 * mu) * K;
 	int stop = 3;
-	int n = 1, q = 1;
-	while(n+q < std::min(stop,nqmax) )
+	//int n = 1, q = 1;
+	//while(n+q < std::min(stop,nqmax) )
+	for(int nq = 2; nq < stop; nq++)
 	{
-		double lambda_n = n*pi;
-		double lambda_q = q*pi;
-		double lambda_nq = (n * n / a + q * q / b) * pi * pi;
-		//double uv_coef = alpha * q0 * sin(lambda_n * x0) * sin(lambda_q * y0)
-		//	/ (G * lambda_f * (m + 1) * lambda_nq * lambda_nq);
-		//double u_coef = uv_coef * lambda_n;
-		//double v_coef = uv_coef * lambda_q;
-		//double t_coef = t_coef0 * lambda_nq;
-		//u_tilde = u_coef * (1.0 - exp(t_coef * _t));
-		//v_tilde = v_coef * (1.0 - exp(t_coef * _t));
-		p_tilde = aQ*sin(lambda_n * x0) * sin(lambda_q * y0) 
-			/ (t_coef0 * (lambda_nq * lambda_nq + omega * omega))
-			* (lambda_nq * sin(omega * t_coef0 * _t) + omega * (exp(-lambda_nq * t_coef0 * _t) - cos(omega * t_coef0 * _t)));
-		u_tilde = -lambda_n * p_tilde / lambda_nq;
-		v_tilde = -lambda_q * p_tilde / lambda_nq;
-		//std::cout << "n=" << n << " q=" << q << " ut=" << get_value(u_tilde) << " vt=" << get_value(v_tilde) << std::endl;
-		if (std::fabs(get_value(u_tilde)) > errtol * std::fabs(get_value(sol(0, 0))) &&
-			std::fabs(get_value(v_tilde)) > errtol * std::fabs(get_value(sol(1, 0))))
-			stop = n+q+2;
-		sol(0,0) += u_tilde*cos(lambda_n*_x)*sin(lambda_q*_y);
-		sol(1,0) += v_tilde*sin(lambda_n*_x)*cos(lambda_q*_y);
-		n++; q--;
-		if (q == 0) { q = n; n = 1; }
+		for(int n = 1; n < nq; ++n) 
+		{
+			int q = nq - n;
+//#pragma omp simd
+			if (n * n + q * q < nqmax2)
+			{
+				double lambda_n = n * pi;
+				double lambda_q = q * pi;
+				double lambda_nq = (n * n / a + q * q / b) * pi * pi;
+				//double uv_coef = alpha * q0 * sin(lambda_n * x0) * sin(lambda_q * y0)
+				//	/ (G * lambda_f * (m + 1) * lambda_nq * lambda_nq);
+				//double u_coef = uv_coef * lambda_n;
+				//double v_coef = uv_coef * lambda_q;
+				//double t_coef = t_coef0 * lambda_nq;
+				//u_tilde = u_coef * (1.0 - exp(t_coef * _t));
+				//v_tilde = v_coef * (1.0 - exp(t_coef * _t));
+				p_tilde = aQ * sin(lambda_n * x0) * sin(lambda_q * y0)
+					/ (t_coef0 * (lambda_nq * lambda_nq + omega * omega))
+					* (lambda_nq * sin(omega * t_coef0 * _t) + omega * (exp(-lambda_nq * t_coef0 * _t) - cos(omega * t_coef0 * _t)));
+				u_tilde = -lambda_n * p_tilde / lambda_nq;
+				v_tilde = -lambda_q * p_tilde / lambda_nq;
+				//std::cout << "n=" << n << " q=" << q << " ut=" << get_value(u_tilde) << " vt=" << get_value(v_tilde) << std::endl;
+				if (std::fabs(get_value(u_tilde)) > errtol * std::fabs(get_value(sol(0, 0))) &&
+					std::fabs(get_value(v_tilde)) > errtol * std::fabs(get_value(sol(1, 0))))
+					stop = n + q + 2;
+				sol(0, 0) += u_tilde * cos(lambda_n * _x) * sin(lambda_q * _y);
+				sol(1, 0) += v_tilde * sin(lambda_n * _x) * cos(lambda_q * _y);
+			}
+		}
 	}
 //#pragma omp critical
 //	std::cout << " uv stop at n=" << n << " q=" << q << " stop=" << stop << std::endl;
@@ -111,25 +120,30 @@ hessian_variable Test6::Pressure(double _x, double _y, double _z, double _t) con
 	//double t_coef0 = -1.0 / (alpha * alpha / (G * lambda_f * (m + 1)) + (chi ? 1.0 / chi : 0.0));
 	double t_coef0 = (lambda + 2 * mu) * K;
 	int stop = 3;
-	int n = 1, q = 1;
-	while (n+q < std::min(stop,nqmax) )
+	for (int nq = 2; nq < stop; nq++)
 	{
-		double lambda_n = n*pi/a;
-		double lambda_q = q*pi/b;
-		double lambda_nq = (n * n / a + q * q / b) * pi * pi;
-		//double p_coef = - q0 * sin(lambda_n * x0) * sin(lambda_q * y0) / (lambda_f * lambda_nq);
-		//double t_coef = t_coef0*lambda_nq;
-		//p_tilde = p_coef*(1.0 - exp(t_coef * _t));
-		p_tilde = aQ*sin(lambda_n * x0) * sin(lambda_q * y0) 
-			/ (t_coef0 * (lambda_nq * lambda_nq + omega * omega))
-			* (lambda_nq * sin(omega * t_coef0 * _t) - omega * cos(omega * t_coef0 * _t) + omega * exp(-lambda_nq * t_coef0 * _t));
+//#pragma omp simd
+		for (int n = 1; n < nq; ++n)
+		{
+			int q = nq - n;
+			if (n * n + q * q < nqmax2)
+			{
+				double lambda_n = n * pi / a;
+				double lambda_q = q * pi / b;
+				double lambda_nq = (n * n / a + q * q / b) * pi * pi;
+				//double p_coef = - q0 * sin(lambda_n * x0) * sin(lambda_q * y0) / (lambda_f * lambda_nq);
+				//double t_coef = t_coef0*lambda_nq;
+				//p_tilde = p_coef*(1.0 - exp(t_coef * _t));
+				p_tilde = aQ * sin(lambda_n * x0) * sin(lambda_q * y0)
+					/ (t_coef0 * (lambda_nq * lambda_nq + omega * omega))
+					* (lambda_nq * sin(omega * t_coef0 * _t) - omega * cos(omega * t_coef0 * _t) + omega * exp(-lambda_nq * t_coef0 * _t));
 
-		//std::cout << "n=" << std::setw(4) << n << " q=" << std::setw(4) << q << " pt=" << std::setw(14) << get_value(p_tilde) << " sol=" << std::setw(14) << get_value(sol) << " x=" << _x << " y=" << _y << std::endl;
-		if ( std::fabs(get_value(p_tilde)) > errtol * std::fabs(get_value(sol)))
-			stop = n+q+2;
-		sol += p_tilde * sin(lambda_n * _x) * sin(lambda_q * _y);
-		n++; q--;
-		if (q == 0) { q = n; n = 1; }
+				//std::cout << "n=" << std::setw(4) << n << " q=" << std::setw(4) << q << " pt=" << std::setw(14) << get_value(p_tilde) << " sol=" << std::setw(14) << get_value(sol) << " x=" << _x << " y=" << _y << std::endl;
+				if (std::fabs(get_value(p_tilde)) > errtol * std::fabs(get_value(sol)))
+					stop = n + q + 2;
+				sol += p_tilde * sin(lambda_n * _x) * sin(lambda_q * _y);
+			}
+		}
 	}
 //#pragma omp critical
 //	std::cout << " p stop at n=" << n << " q=" << q << " stop=" << stop << std::endl;

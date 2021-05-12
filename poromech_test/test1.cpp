@@ -20,10 +20,10 @@ Test1::Test1()// : C0(GenMatrix1(6)), K0(GenMatrix1(3)), B0(GenMatrix1(3))
 {
 	real vC0[36] =
 	{
-		81,           33,            5,           14,           37,           32,
-		33,          100,           26,           58,           58,           73,
-		5,           26,           90,           23,           60,           28,
-		14,           58,           23,           77,           29,            3,
+		81,           33,           5,            14,           37,           32,
+		33,           100,          26,           58,           58,           73,
+		5,            26,           90,           23,           60,           28,
+		14,           58,           23,           77,           29,           3,
 		37,           58,           60,           29,           84,           60,
 		32,           73,           28,            3,           60,           99
 		
@@ -61,9 +61,9 @@ Test1::Test1()// : C0(GenMatrix1(6)), K0(GenMatrix1(3)), B0(GenMatrix1(3))
 		6,           67,           27,
 		5,           27,           76
 	};
-	C0 = rMatrix(vC0,6,6);
-	K0 = rMatrix(vK0,3,3);
-	B0 = rMatrix(vB0,3,3)*10;
+	C0 = rMatrix(vC1,6,6);
+	K0 = rMatrix(vK1,3,3)/1000.0;
+	B0 = rMatrix(vB1,3,3)/100.0;
 	//int seed = 0;
 	//GenTensor(C0,6,seed);
 	//seed = GenTensor(K0,3,seed);
