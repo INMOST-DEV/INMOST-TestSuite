@@ -7,16 +7,20 @@
 
 class Test6 : public AbstractTest
 {
-	double a; //Size of the box in x direction
-	double b; //Size of the box in y direction
-	double E; //Young modulus
-	double nu; //Poisson ratio
-	double alpha; //Biot coefficient
-	double K; //Permeability coefficient
-	double x0, y0; //source position
-	double c0; //specific storage coefficient
-	double lambda, mu; //lame coefficients
-	double beta;
+	const double a; //Size of the box in x direction
+	const double b; //Size of the box in y direction
+	const double E; //Young modulus
+	const double nu; //Poisson ratio
+	const double alpha; //Biot coefficient
+	const double K; //Permeability coefficient
+	const double x0, y0; //source position
+	const double M; //specific storage coefficient
+	const double aQ; //source strength
+	//const double mu; //fluid viscosity
+	//const double q0; //source
+	//const double lambda, mu; //lame coefficients
+	//const double G, m, lambda_f, chi; //coefficients in solution
+	double lambda, mu, omega;
 	INMOST::rMatrix C0, K0, B0;
 	INMOST::Cell source;
 public:
@@ -47,9 +51,6 @@ public:
 	void SetBC(INMOST::Mesh & m, double T, INMOST::MarkerType boundary) const;
 	void SetForce(INMOST::Mesh & m, const INMOST::dynamic_variable & p,  double T) const;
 	
-	double p_tilde(int n, int q, double T) const;
-	double u_tilde(int n, int q, double T) const;
-	double v_tilde(int n, int q, double T) const;
 	
 };
 
