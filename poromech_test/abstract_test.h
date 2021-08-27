@@ -7,14 +7,14 @@
 // test2 : analytic nonlinear solution
 // test3 : analytic steady-state with discontinuous tensors
 // test4 : analytic solution with heterogeneous tensors defined by coordinates
-// test5 : Terzaghi column (not implemented)
-// test6 : Barry and Mercer (not implemented) 
+// test5 : Mandel problem 
+// test6 : Barry and Mercer 
 // test7 : analytic anisotropic locking issue with neumann and dirichlet bc
-// test8 : sphere with infinite tensor in the middle (not implemented)
-// test9 : sector - real experement from paper of Nicola (not implemented)
+// test8 : Terzaghi column 
+// test9 : double-layered Terzaghi column (not implemented)
 // test10 : norne field
 // test11 : two wells stability
-// test12 : mandel problem (not implemented)
+// test12 : anisotropic Mandel problem (not implemented)
 // test13 : two wells, left part - poromech, right part - darcy
 
 

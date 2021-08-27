@@ -423,7 +423,7 @@ void AbstractTest::SetBC(Mesh & m, double T,MarkerType boundary) const
 
 void AbstractTest::SetInitial(Mesh & m,double T, double Told, MarkerType orient) const
 {
-	if( func_output ) std::cout << __FUNCTION__ << " at time = " << T << std::endl;
+	if( func_output ) std::cout << __FUNCTION__ << " at time = " << T << " old time " << Told << std::endl;
 	Automatizator * aut = Automatizator::GetCurrent();
 	Automatizator::RemoveCurrent();
 	if( m.HaveTag("UVWP") )
@@ -453,6 +453,8 @@ void AbstractTest::SetInitial(Mesh & m,double T, double Told, MarkerType orient)
 				tag_PF[*it] = Pressure(cnt[0],cnt[1],cnt[2],T).GetValue();
 			}
 		}
+		//std::cout << __FILE__ << ":" << __LINE__ << std::endl;
+		m.Save("init.vtk");
 		return;
 	}
 	TagReal tag_P, tag_Pold, tag_nU;
@@ -507,6 +509,8 @@ void AbstractTest::SetInitial(Mesh & m,double T, double Told, MarkerType orient)
 		}
 	}
 	Automatizator::MakeCurrent(aut);
+	//std::cout << __FILE__ << ":" << __LINE__ << std::endl;
+	//m.Save("init.vtk");
 }
 
 
@@ -729,8 +733,13 @@ void Report(const AbstractTest * test,Mesh & m, double T, double dT, double time
 	}
 	if( test->Analytic() )
 	{
-		TagRealArray tag_err  = m.CreateTag("ERR_UVWP",DATA_REAL,CELL,NONE,4);
-		TagReal      tag_errm = m.CreateTag("ERR_UVWP_MAG",DATA_REAL,CELL,NONE,1);
+		//TagRealArray tag_err  = m.CreateTag("ERR_UVWP",DATA_REAL,CELL,NONE,4);
+		TagRealArray tag_erru = m.CreateTag("ERR_UVW", DATA_REAL, CELL, NONE, 4);
+		TagRealArray tag_refu = m.CreateTag("REF_UVW", DATA_REAL, CELL, NONE, 4);
+		//TagReal      tag_errm = m.CreateTag("ERR_UVWP_MAG",DATA_REAL,CELL,NONE,1);
+		TagReal      tag_errp = m.CreateTag("ERR_P", DATA_REAL, CELL, NONE, 1);
+		TagReal      tag_refp = m.CreateTag("REF_P", DATA_REAL, CELL, NONE, 1);
+
 		real Cnorm[6] = {0,0,0,0,0,0}, L2norm[6] = {0,0,0,0,0,0}, Vnorm = 0;
 		real uvw_mag_min = 1.0e20, uvw_mag_max = -1.0e20;
 		real p_min = 1.0e20, p_max = -1.0e20;
@@ -758,7 +767,10 @@ void Report(const AbstractTest * test,Mesh & m, double T, double dT, double time
 			
 			Matrix<real,shell<real> >(shell<real>(rUVWP,4),4,1)(0,3,0,1) = test->Displacement(cnt[0],cnt[1],cnt[2],T);
 			rUVWP[3] = test->Pressure(cnt[0],cnt[1],cnt[2],T).GetValue();
-			
+			tag_refu[c][0] = rUVWP[0];
+			tag_refu[c][1] = rUVWP[1];
+			tag_refu[c][2] = rUVWP[2];
+			tag_refp[c] = rUVWP[3];
 			real err[6], vol = c->Volume();
 			
 			mag = sqrt(UVWP[0]*UVWP[0]+UVWP[1]*UVWP[1]+UVWP[2]*UVWP[2]);
@@ -787,11 +799,11 @@ void Report(const AbstractTest * test,Mesh & m, double T, double dT, double time
 				L2norm[k] += err[k]*err[k]*vol;
 			}
 			Vnorm += vol;
-			tag_err[c][0] = err[0];
-			tag_err[c][1] = err[1];
-			tag_err[c][2] = err[2];
-			tag_err[c][3] = err[3];
-			tag_errm[c] = err[4];
+			tag_erru[c][0] = /*tag_err[c][0] =*/ err[0];
+			tag_erru[c][1] = /*tag_err[c][1] =*/ err[1];
+			tag_erru[c][2] = /*tag_err[c][2] =*/ err[2];
+			tag_errp[c] = /*tag_err[c][3] =*/ err[3];
+			//tag_errm[c] = err[4];
 		}
 		Vnorm = m.Integrate(Vnorm);
 		p_min = m.AggregateMin(p_min);
@@ -1179,8 +1191,10 @@ void SplitConormals(const real_array & E,
 #include "test2.h"
 #include "test3.h"
 #include "test4.h"
+#include "test5.h"
 #include "test6.h"
 #include "test7.h"
+#include "test8.h"
 #include "test10.h"
 #include "test11.h"
 #include "test13.h"
@@ -1195,10 +1209,14 @@ AbstractTest * MakeTest(int testn)
 		return new Test3();
 	else if( testn == 4 )
 		return new Test4();
+	else if (testn == 5)
+		return new Test5();
 	else if( testn == 6 )
 		return new Test6();
 	else if( testn == 7 )
 		return new Test7();
+	else if (testn == 8)
+		return new Test8();
 	else if( testn == 10 )
 		return new Test10();
 	else if( testn == 11 )
@@ -1216,7 +1234,7 @@ AbstractTest::AbstractTest()
 	gravity_in_flux = 0;
 	cranknicholson = 0;
 	first_order_flux = 0;
-	func_output = 0;
+	func_output = 1;
 }
 
 
