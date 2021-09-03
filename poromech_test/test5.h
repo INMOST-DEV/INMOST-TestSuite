@@ -21,7 +21,7 @@ class Test5 : public AbstractTest
 	const double B; //skempton's coefficient
 	const double nuu; // undrained Poisson ratio
 	const double c; // consolidation coefficient
-	
+	const bool forcebc; // set top force or displacement
 	INMOST::rMatrix C0, K0, B0;
 public:
 	Test5();
@@ -48,7 +48,7 @@ public:
 	std::string ProblemName() const {return "Mandel";}
 	
 	void SetBC(INMOST::Mesh & m, double T, INMOST::MarkerType boundary) const;
-	
+	void Init(INMOST::Mesh& m);
 	void SetForce(INMOST::Mesh& m, const INMOST::dynamic_variable& p, double T) const;
 };
 

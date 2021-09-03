@@ -10,6 +10,7 @@ add_library(POROMECH_TEST
 		test6.cpp test6.h
 		test7.cpp test7.h
         test8.cpp test8.h
+        test9.cpp test9.h
 		test10.cpp test10.h
 		test11.cpp test11.h
 		test13.cpp test13.h)

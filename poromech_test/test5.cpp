@@ -39,8 +39,18 @@ Test5::Test5()
 	// nu = lambda/(2*(lambda+G))
 	//a(1), b(1), E(1.0e+3), nu(0.25),
 	//K(0.01), alpha(1.0), M(0.1), mu(1), F(10),
-	a(1), b(1), E(2.129159824046921), nu(0.2998533724340176),
-	K(9.98e-10), alpha(1.0), M(5446.623), mu(1.002e-3), F(10),
+	a(1), b(1), 
+	//E(2.129159824046921), nu(0.2998533724340176),
+	E(10), nu(0.45),
+	//K(9.98e-10), 
+	K(1.0e-8),
+	alpha(1.0), 
+	//M(5446.623), 
+	M(10000),
+	//mu(1.002e-3), 
+	mu(0.01),
+	F(10),
+	forcebc(true),
 	//derived parameters
 	lambda(E* nu / (1 + nu) / (1 - 2 * nu)), 
 	G(E / (1 + nu) / 2.0),
@@ -56,6 +66,9 @@ Test5::Test5()
 	std::cout << "consolidation coefficient: " << c << std::endl;
 	std::cout << "undrained Poisson: " << nuu << std::endl;
 	std::cout << "Skempton's coefficient: " << B << std::endl;
+	//double B2 = 3.0 * (nuu - nu) / (alpha * (1 - 2 * nu) * (1 + nuu));
+	//double c2 = 2.0 * K * B2 * B2 * G * (1 - nu) * (1 + nuu) * (1 + nuu) / (9.0 * (1 - nuu) * (nuu - nu));
+	//std::cout << "Skempton's 2: " << B2 << " consolidation 2: " << c2 << std::endl;
 	//std::cout << "(lambda+2*mu)*K:" << (lambda + 2 * mu) * K << std::endl;
 	B0 = rMatrix::Unit(3)*alpha;
 	K0 = rMatrix::Unit(3)*K;
@@ -68,7 +81,7 @@ vMatrix Test5::ElasticTensor(double _x, double _y, double _z) const {return C0;}
 vMatrix Test5::BiotTensor(double _x, double _y, double _z) const { return B0; }
 vMatrix Test5::PermTensor(double _x, double _y, double _z) const {return K0;}
 
-double solvetri(double coef, double x)
+static double solvetri(double coef, double x)
 {
 	// j dx = -r, dx = -r/j, x += dx, x -= r/j
 //#pragma omp critical
@@ -169,7 +182,31 @@ rMatrix Test5::BCMech_coef(double _x, double _y, double _z, double _t) const
 
 
 
-
+void Test5::Init(Mesh& m)
+{
+	double cmin[3] = { +1.0e+20,+1.0e+20,+1.0e+20 }, cmax[3] = { -1.0e+20,-1.0e+20,-1.0e+20 };
+	for (Mesh::iteratorNode it = m.BeginNode(); it != m.EndNode(); ++it) 
+	{
+		real_array& c = it->Coords();
+		for (int k = 0; k < c.size(); ++k)
+		{
+			cmin[k] = std::min(cmin[k], c[k]);
+			cmax[k] = std::max(cmax[k], c[k]);
+		}
+	}
+	m.AggregateMax(cmax, 3);
+	m.AggregateMin(cmin, 3);
+	if (!m.GetProcessorRank())
+		std::cout << "Mesh in " << cmin[0] << ":" << cmax[0] << " " << cmin[1] << ":" << cmax[1] << " " << cmin[2] << ":" << cmax[2] << std::endl;
+	double s[3] = { a,b,a };
+	for (Mesh::iteratorNode it = m.BeginNode(); it != m.EndNode(); ++it)
+	{
+		real_array& c = it->Coords();
+		for (int k = 0; k < c.size(); ++k)
+			c[k] = (c[k] - cmin[k]) / (cmax[k] - cmin[k]) * s[k];
+	}
+	//m.RecomputeGeometricData();
+}
 
 void Test5::SetBC(Mesh & m, double T, MarkerType boundary) const
 {
@@ -196,24 +233,28 @@ void Test5::SetBC(Mesh & m, double T, MarkerType boundary) const
 				tag_BC_flow[f][1] = 1;
 				tag_BC_flow[f][2] = 0;
 				//mech
-				/*
-				tag_BC_mech[f][0] = 0; //D-perp
-				tag_BC_mech[f][1] = 1; //N-perp
-				tag_BC_mech[f][2] = 0; //D-parallel
-				tag_BC_mech[f][3] = 1; //N-parallel
-				tag_BC_mech[f][4] = -nrm[0] * F;// -alpha * P);
-				tag_BC_mech[f][5] = -nrm[1] * F;// -alpha * P);
-				tag_BC_mech[f][6] = -nrm[2] * F;// -alpha * P);
-				*/
-				rMatrix UVW = Displacement(cnt[0], cnt[1], cnt[2], T);
-				double nUVW = nrm[0] * UVW(0,0) + nrm[1] * UVW(1,0) + nrm[2] * UVW(2,0);
-				tag_BC_mech[f][0] = 1; //D-perp
-				tag_BC_mech[f][1] = 0; //N-perp
-				tag_BC_mech[f][2] = 0; //D-parallel
-				tag_BC_mech[f][3] = 1; //N-parallel
-				tag_BC_mech[f][4] = nrm[0]*nUVW;// -alpha * P);
-				tag_BC_mech[f][5] = nrm[1]*nUVW;// -alpha * P);
-				tag_BC_mech[f][6] = nrm[2]*nUVW;// -alpha * P);
+				if (forcebc) //uniform force 
+				{
+					tag_BC_mech[f][0] = 0; //D-perp
+					tag_BC_mech[f][1] = 1; //N-perp
+					tag_BC_mech[f][2] = 0; //D-parallel
+					tag_BC_mech[f][3] = 1; //N-parallel
+					tag_BC_mech[f][4] = -nrm[0] * F;
+					tag_BC_mech[f][5] = -nrm[1] * F;
+					tag_BC_mech[f][6] = -nrm[2] * F;
+				}
+				else //analytical displacement
+				{
+					rMatrix UVW = Displacement(cnt[0], cnt[1], cnt[2], T);
+					double nUVW = nrm[0] * UVW(0, 0) + nrm[1] * UVW(1, 0) + nrm[2] * UVW(2, 0);
+					tag_BC_mech[f][0] = 1; //D-perp
+					tag_BC_mech[f][1] = 0; //N-perp
+					tag_BC_mech[f][2] = 0; //D-parallel
+					tag_BC_mech[f][3] = 1; //N-parallel
+					tag_BC_mech[f][4] = nrm[0] * nUVW;// -alpha * P);
+					tag_BC_mech[f][5] = nrm[1] * nUVW;// -alpha * P);
+					tag_BC_mech[f][6] = nrm[2] * nUVW;// -alpha * P);
+				}
 			}
 			else if (fabs(nrm[0] - 1) < 1.0e-6) // x-normal up
 			{

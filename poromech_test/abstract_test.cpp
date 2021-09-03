@@ -1195,6 +1195,7 @@ void SplitConormals(const real_array & E,
 #include "test6.h"
 #include "test7.h"
 #include "test8.h"
+#include "test9.h"
 #include "test10.h"
 #include "test11.h"
 #include "test13.h"
@@ -1217,6 +1218,8 @@ AbstractTest * MakeTest(int testn)
 		return new Test7();
 	else if (testn == 8)
 		return new Test8();
+	else if (testn == 9)
+		return new Test9();
 	else if( testn == 10 )
 		return new Test10();
 	else if( testn == 11 )
