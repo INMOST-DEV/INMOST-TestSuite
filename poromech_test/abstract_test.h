@@ -11,10 +11,10 @@
 // test6 : Barry and Mercer 
 // test7 : analytic anisotropic locking issue with neumann and dirichlet bc
 // test8 : Terzaghi column 
-// test9 : double-layered Terzaghi column (not implemented)
+// test9 : double-layered Terzaghi column 
 // test10 : norne field
 // test11 : two wells stability
-// test12 : anisotropic Mandel problem (not implemented)
+// test12 : anisotropic Mandel problem 
 // test13 : two wells, left part - poromech, right part - darcy
 
 

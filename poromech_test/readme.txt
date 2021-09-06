@@ -14,7 +14,8 @@ test12 : anisotropic Mandel problem (not implemented)
 test13 : two wells, left part - poromech, right part - darcy
 
 Todo:
-1. anisotropic Mandel
+1. anisotropic Mandel - transverse isotropic Mandel
 2. rename test files
+3. Axis rotation matrices in Voigt notation
 
 
