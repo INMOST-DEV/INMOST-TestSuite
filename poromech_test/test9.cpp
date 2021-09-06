@@ -31,20 +31,56 @@ double Test9::InverseBiotModulus(double _x, double _y, double _z) const
 		return S2;
 }
 
-static double solvetri(double beta, double theta, double x)
+static double solvetri(double beta, double theta, double x, bool print)
 {
+	const double ratio = (std::sqrt(5.0) - 1.0) / 2.0;
 	const double c1 = (1 - beta) / (1 + beta);
 	const double c2 = (1 - theta) / (1 + theta);
 	// j dx = -r, dx = -r/j, x += dx, x -= r/j
 	{
-		double r, j;
-		int nit = 0;
+		double r, j, nx, lsx;
+		int nit = 0, lsit;
 		do
 		{
 			r = cos(x) + c1 * cos(c2 * x);
 			j = -sin(x) - c1 * c2 * sin(c2 * x);
-			//std::cout << nit << " x " << x << " r " << r << " j " << j << " new x " << x - r/j << " c1 " << c1 << " c2 " << c2 << std::endl;
-			x -= r / j;
+			nx = x - r / j;
+			//line search
+			{
+				double pos[4] = { 0.0, 1.0 - ratio, ratio, 1.0 };
+				double val[4] = { r, 0.0, 0.0, 0.0 };
+				val[1] = cos(nx * pos[1] + x * (1.0 - pos[1])) + c1 * cos(c2 * (nx * pos[1] + x * (1.0 - pos[1])));
+				val[2] = cos(nx * pos[2] + x * (1.0 - pos[2])) + c1 * cos(c2 * (nx * pos[2] + x * (1.0 - pos[2])));
+				val[3] = cos(nx) + c1 * cos(c2 * nx);
+				lsit = 0;
+				while (std::fabs(val[1] - val[2]) > epsnln * std::fabs(nx))
+				{
+					if (print) 
+						std::cout << "pos " << pos[0] << " " << pos[1] << " " << pos[2] << " " << pos[3] << " val " << val[0] << " " << val[1] << " " << val[2] << " " << val[3] << std::endl;
+					if (std::fabs(val[1]) < std::fabs(val[2]))
+					{
+						pos[3] = pos[2]; val[3] = val[2];
+						pos[2] = pos[1]; val[2] = val[1];
+						pos[1] = pos[3] - ratio * (pos[3] - pos[0]);
+						val[1] = cos(nx * pos[1] + x * (1.0 - pos[1])) + c1 * cos(c2 * (nx * pos[1] + x * (1.0 - pos[1])));
+					}
+					else
+					{
+						pos[0] = pos[1]; val[0] = val[1];
+						pos[1] = pos[2]; val[1] = val[2];
+						pos[2] = pos[0] + ratio * (pos[3] - pos[0]);
+						val[2] = cos(nx * pos[2] + x * (1.0 - pos[2])) + c1 * cos(c2 * (nx * pos[2] + x * (1.0 - pos[2])));
+					}
+					lsit++;
+				}
+				int kmin = 0;
+				for (int k = 1; k < 4; ++k)
+					if (std::fabs(val[k]) < std::fabs(val[kmin])) kmin = k;
+				lsx = nx * pos[kmin] + x * (1.0 - pos[kmin]);
+			}
+			if( print )
+				std::cout << nit << " x " << x << " r " << r << " j " << j << " new x " << nx << " new lsx " << lsx << " lsit " << lsit << " c1 " << c1 << " c2 " << c2 << std::endl;
+			x = lsx;
 			nit++;
 		} while (std::fabs(r) > epsnln * std::fabs(x));
 	}
@@ -55,7 +91,7 @@ Test9::Test9()
 	:
 	//a(1), b(1), E(1.0e+3), nu(0.25),
 	//K(0.01), alpha(1.0), M(0.1), mu(1), F(10),
-	a1(0.5), a2(0.5), b(0.1),
+	a1(0.75), a2(0.25), b(0.1),
 	//E(2.129159824046921), nu(0.2998533724340176),
 	E1(10), E2(2),
 	nu1(0.45), nu2(0.15),
@@ -131,7 +167,17 @@ Test9::Test9()
 	wi.resize(istop);
 #pragma omp parallel for
 	for (int i = 0; i < istop; ++i)
-		wi[i] = solvetri(beta, theta, pi * 0.5 + pi * i) / (1 + theta);
+	{
+		wi[i] = solvetri(beta, theta, pi * 0.5 + pi * i, false) / (1 + theta);
+		if (std::fabs(wi[i] * (1 + theta) - (pi * 0.5 + pi * i)) > pi)
+		{
+#pragma omp critical
+			{
+				std::cout << "i " << i << " x " << wi[i] * (1 + theta) << " guess " << pi * 0.5 + pi * i << " farther than period!" << std::endl;
+				solvetri(beta, theta, pi * 0.5 + pi * i, true);
+			}
+		}
+	}
 }
 
 
