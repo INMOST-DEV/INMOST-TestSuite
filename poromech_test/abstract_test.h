@@ -77,7 +77,7 @@ bool rCheckEigen(const INMOST::rMatrix & A, bool print=true);
 bool vCheckEigen(const INMOST::vMatrix & A, bool print=true);
 
 INMOST::rMatrix GenIsotropicTensor(double E, double nu);
-INMOST::rMatrix GenAnisotropicTensor(double E1, double E2, double E3, double nu12, double nu13, double nu23, double G12, double G23, double G13);
+INMOST::rMatrix GenAnisotropicTensor(double E1, double E2, double E3, double nu12, double nu13, double nu23, double G12, double G13, double G23);
 
 /// Decomposes elastic tensor into 9 co-normal 3x3 tensors and computes
 /// a matrix of projections of co-normal tensors onto normal component

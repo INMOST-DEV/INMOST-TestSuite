@@ -31,6 +31,18 @@ double Test9::InverseBiotModulus(double _x, double _y, double _z) const
 		return S2;
 }
 
+
+static double trig_r(double c1, double c2, double x)
+{
+	return cos(x) + c1 * cos(c2 * x);
+}
+
+static double trig_j(double c1, double c2, double x)
+{
+	return -sin(x) - c1 * c2 * sin(c2 * x);
+}
+
+
 static double solvetri(double beta, double theta, double x, bool print)
 {
 	const double ratio = (std::sqrt(5.0) - 1.0) / 2.0;
@@ -42,16 +54,16 @@ static double solvetri(double beta, double theta, double x, bool print)
 		int nit = 0, lsit;
 		do
 		{
-			r = cos(x) + c1 * cos(c2 * x);
-			j = -sin(x) - c1 * c2 * sin(c2 * x);
+			r = trig_r(c1,c2,x);
+			j = trig_j(c1,c2,x);
 			nx = x - r / j;
 			//line search
 			{
 				double pos[4] = { 0.0, 1.0 - ratio, ratio, 1.0 };
 				double val[4] = { r, 0.0, 0.0, 0.0 };
-				val[1] = cos(nx * pos[1] + x * (1.0 - pos[1])) + c1 * cos(c2 * (nx * pos[1] + x * (1.0 - pos[1])));
-				val[2] = cos(nx * pos[2] + x * (1.0 - pos[2])) + c1 * cos(c2 * (nx * pos[2] + x * (1.0 - pos[2])));
-				val[3] = cos(nx) + c1 * cos(c2 * nx);
+				val[1] = trig_r(c1,c2,nx * pos[1] + x * (1.0 - pos[1]));
+				val[2] = trig_r(c1,c2,nx * pos[2] + x * (1.0 - pos[2]));
+				val[3] = trig_r(c1,c2,nx);
 				lsit = 0;
 				while (std::fabs(val[1] - val[2]) > epsnln * std::fabs(nx))
 				{
@@ -62,14 +74,14 @@ static double solvetri(double beta, double theta, double x, bool print)
 						pos[3] = pos[2]; val[3] = val[2];
 						pos[2] = pos[1]; val[2] = val[1];
 						pos[1] = pos[3] - ratio * (pos[3] - pos[0]);
-						val[1] = cos(nx * pos[1] + x * (1.0 - pos[1])) + c1 * cos(c2 * (nx * pos[1] + x * (1.0 - pos[1])));
+						val[1] = trig_r(c1,c2,nx * pos[1] + x * (1.0 - pos[1]));
 					}
 					else
 					{
 						pos[0] = pos[1]; val[0] = val[1];
 						pos[1] = pos[2]; val[1] = val[2];
 						pos[2] = pos[0] + ratio * (pos[3] - pos[0]);
-						val[2] = cos(nx * pos[2] + x * (1.0 - pos[2])) + c1 * cos(c2 * (nx * pos[2] + x * (1.0 - pos[2])));
+						val[2] = trig_r(c1,c2,nx * pos[2] + x * (1.0 - pos[2]));
 					}
 					lsit++;
 				}
@@ -236,7 +248,7 @@ hMatrix Test9::Displacement(double _x, double _y, double _z, double _t) const
 {
 	unknown x(_x,0), y(_y,1), z(_z,2), t(_t,3);
 	hMatrix sol(3,1);
-	double du, s = 1;
+	double du;
 	sol.Zero();
 	
 	if (_t)
@@ -249,8 +261,8 @@ hMatrix Test9::Displacement(double _x, double _y, double _z, double _t) const
 			{
 				du = 0.0;
 				//du += a2 * (alpha2 - alpha1) * m2 * P2func(wi[i], a1, _t);
-				du -= s*alpha2 * m2 * (intP2func(wi[i], a1, _t) - intP2func(wi[i], a1 + a2, _t));
-				du -= s*alpha1 * m1 * (intP1func(wi[i], _x, _t) - intP1func(wi[i], a1, _t));
+				du -= alpha2 * m2 * (intP2func(wi[i], a1, _t) - intP2func(wi[i], a1 + a2, _t));
+				du -= alpha1 * m1 * (intP1func(wi[i], _x, _t) - intP1func(wi[i], a1, _t));
 				sol(0, 0) += du;
 				if (std::fabs(get_value(du)) < errtol * std::fabs(get_value(sol(0, 0))))
 					break;
@@ -263,7 +275,7 @@ hMatrix Test9::Displacement(double _x, double _y, double _z, double _t) const
 			{
 				du = 0.0;
 				//du += (a1 + a2 - _x) * (alpha2 - alpha1) * m2 * P2func(wi[i], a1, _t);
-				du -= s*alpha2 * m2 * (intP2func(wi[i], _x, _t) - intP2func(wi[i], a1 + a2, _t));
+				du -= alpha2 * m2 * (intP2func(wi[i], _x, _t) - intP2func(wi[i], a1 + a2, _t));
 				sol(0, 0) += du;
 				if (std::fabs(get_value(du)) < errtol * std::fabs(get_value(sol(0, 0))))
 					break;
@@ -274,9 +286,9 @@ hMatrix Test9::Displacement(double _x, double _y, double _z, double _t) const
 	{
 		const double p0 = B1 * F;
 		if (_x < a1)
-			sol(0, 0) = (a1 - _x) * m1 * (F - s*alpha1*p0) + a2 * m2 * (F - s*alpha2*p0);
+			sol(0, 0) = (a1 - _x) * m1 * (F - alpha1*p0) + a2 * m2 * (F - alpha2*p0);
 		else
-			sol(0, 0) = (a1 + a2 - _x) * m2 * (F - s*alpha2*p0);
+			sol(0, 0) = (a1 + a2 - _x) * m2 * (F - alpha2*p0);
 	}
 	
 	if (sol.CheckNansInfs())

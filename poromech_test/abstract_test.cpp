@@ -1281,10 +1281,9 @@ void vMatrixPrint(const vMatrix & m, double tol)
 
 rMatrix GenIsotropicTensor(double E, double nu)
 {
-	rMatrix C(6,6);
+	rMatrix C(6,6,0.0);
 	double lambda = E*nu/((1+nu)*(1-2*nu));
 	double mu = E/(2*(1+nu));
-	C.Zero();
 	C(0,0) = C(1,1) = C(2,2) = lambda + 2*mu;
 	C(0,1) = C(1,0) = lambda;
 	C(0,2) = C(2,0) = lambda;
@@ -1293,11 +1292,9 @@ rMatrix GenIsotropicTensor(double E, double nu)
 	return C;
 }
 
-rMatrix GenAnisotropicTensor(double E1, double E2, double E3, double nu12, double nu13, double nu23, double G12, double G23, double G13)
+rMatrix GenAnisotropicTensor(double E1, double E2, double E3, double nu12, double nu13, double nu23, double G12, double G13, double G23)
 {
-	rMatrix C(6,6);
-	C.Zero();
-	
+	rMatrix C(6,6,0.0);
 	double nu21 = E2/E1*nu12;
 	double nu31 = E3/E1*nu13;
 	double nu32 = E3/E2*nu23;
@@ -1306,9 +1303,9 @@ rMatrix GenAnisotropicTensor(double E1, double E2, double E3, double nu12, doubl
 	C(1,0) = -nu12/E1;	C(1,1) =   1.0/E2;	C(1,2) = -nu32/E3;
 	C(2,0) = -nu13/E1;	C(2,1) = -nu23/E2;	C(2,2) =   1.0/E3;
 	
-	C(3,3) = 1.0/(2.0*G12);
-	C(4,4) = 1.0/(2.0*G23);
-	C(5,5) = 1.0/(2.0*G13);
+	C(3,3) = 1.0/(2.0*G23);
+	C(4,4) = 1.0/(2.0*G13);
+	C(5,5) = 1.0/(2.0*G12);
 	
 	return C.Invert();
 }
