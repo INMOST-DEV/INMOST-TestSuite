@@ -10,12 +10,15 @@ test8 : Terzaghi column
 test9 : double-layered Terzaghi column
 test10 : norne field
 test11 : two wells stability
-test12 : anisotropic Mandel problem (not implemented)
+test12 : transversally isotropic Mandel problem
 test13 : two wells, left part - poromech, right part - darcy
+test14 : anisotropic Mandel problem (not implemented)
+test15 : Cryer's sphere (not implemented)
 
 Todo:
-1. anisotropic Mandel - transverse isotropic Mandel
-2. rename test files
-3. Axis rotation matrices in Voigt notation
+1. rename test files
+2. Axis rotation matrices in Voigt notation
+3. anisotropic Mandel problem
+4. Cryer's sphere
 
 

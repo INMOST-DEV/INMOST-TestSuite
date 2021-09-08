@@ -20,7 +20,7 @@ class Test6 : public AbstractTest
 	//const double q0; //source
 	//const double lambda, mu; //lame coefficients
 	//const double G, m, lambda_f, chi; //coefficients in solution
-	double lambda, mu, omega;
+	double lambda, G, omega;
 	INMOST::rMatrix C0, K0, B0;
 	INMOST::Cell source;
 public:

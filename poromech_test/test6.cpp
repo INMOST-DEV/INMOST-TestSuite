@@ -35,19 +35,19 @@ Test6::Test6()
 : E(1.0e+3), nu(0.25), a(1), b(1), K(0.01), alpha(1.0), aQ(0.1), 
   x0(0.25), y0(0.25), M(0), //q0(0.03), 
   //G(E/(2.0*(1+nu))),m(1.0/(1-2*nu)),lambda_f(K/mu),chi(lambda_f*M)
-	lambda(E* nu / (1 + nu) / (1 - 2 * nu)), mu(E / (1 + nu) / 2.0),
+	lambda(E* nu / (1 + nu) / (1 - 2 * nu)), G(E / (1 + nu) / 2.0),
 	omega(1)
 {
 	//lambda = E*nu/(1+nu)/(1-2*nu);
 	//mu = E/(1+nu)/2.0;
-	//beta = (lambda+2*mu)*K/a/b;
+	//beta = (lambda+2*G)*K/a/b;
 	std::cout << "E: " << E << " nu: " << nu << std::endl;
 	//std::cout << "G: " << G << " m " << m << std::endl;
 	std::cout << "K: " << K << " M " << M << std::endl;
 	//std::cout << "lambda_f: " << lambda_f << " chi " << chi << std::endl;
 	std::cout << "alpha: " << alpha << std::endl;
-	std::cout << "lambda " << lambda << " mu " << mu  << std::endl;
-	std::cout << "(lambda+2*mu)*K:" << (lambda + 2 * mu) * K << std::endl;
+	std::cout << "lambda " << lambda << " G " << G  << std::endl;
+	std::cout << "(lambda+2*mu)*K:" << (lambda + 2 * G) * K << std::endl;
 	B0 = rMatrix::Unit(3)*alpha;
 	K0 = rMatrix::Unit(3)*K;
 	C0 = GenIsotropicTensor(E,nu);
@@ -66,7 +66,7 @@ hMatrix Test6::Displacement(double _x, double _y, double _z, double _t) const
 	double u_tilde, v_tilde, p_tilde;
 	sol.Zero();
 	//double t_coef0 = -1.0 / ( alpha * alpha / (G * lambda_f * (m + 1)) + (chi ? 1.0/chi : 0.0));
-	double t_coef0 = (lambda + 2 * mu) * K;
+	double t_coef0 = (lambda + 2 * G) * K;
 	int stop = 3;
 	//int n = 1, q = 1;
 	//while(n+q < std::min(stop,nqmax) )
@@ -118,7 +118,7 @@ hessian_variable Test6::Pressure(double _x, double _y, double _z, double _t) con
 	double sol = 0;
 	double p_tilde;
 	//double t_coef0 = -1.0 / (alpha * alpha / (G * lambda_f * (m + 1)) + (chi ? 1.0 / chi : 0.0));
-	double t_coef0 = (lambda + 2 * mu) * K;
+	double t_coef0 = (lambda + 2 * G) * K;
 	int stop = 3;
 	for (int nq = 2; nq < stop; nq++)
 	{
@@ -151,7 +151,7 @@ hessian_variable Test6::Pressure(double _x, double _y, double _z, double _t) con
 	{
 		std::cout << "Bad sol " << get_value(sol) << std::endl;
 	}
-	return 4.0 / (a * b) * sol * (lambda + 2 * mu);
+	return 4.0 / (a * b) * sol * (lambda + 2 * G);
 }
 
 rMatrix Test6::BCFlow_coef(double _x, double _y, double _z, double _t) const
@@ -195,7 +195,7 @@ void Test6::Init(Mesh & m)
 void Test6::SetForce(Mesh & m, const INMOST::dynamic_variable & p, double T) const
 {
 	TagVariableArray tag_F = m.GetTag("FORCE");
-	double t_coef0 = (lambda + 2 * mu) * K;
+	double t_coef0 = (lambda + 2 * G) * K;
 	if (source.isValid())
 		//tag_F[source][3] = -q0 / source.Volume();
 		tag_F[source][3] = aQ*sin(omega*t_coef0*T) / source.Volume();
