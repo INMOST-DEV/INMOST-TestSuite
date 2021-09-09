@@ -1,7 +1,7 @@
 #include "test8.h"
 
-// [1] Herminio T.Honorio, Clovis R.Maliska, Massimiliano Ferronato, Carlo Janna
-// A stabilized element-based finite volume method for poroelastic problems
+// [1] В.Е. Борисов, А.В. Иванов, Б.В. Критский, И.С.Меньшов, Е.Б.Савенков
+// Численное моделирование задач пороупругости
 
 using namespace INMOST;
 
@@ -28,15 +28,15 @@ Test8::Test8()
 : 
 	//a(1), b(1), E(1.0e+3), nu(0.25),
 	//K(0.01), alpha(1.0), M(0.1), mu(1), F(10),
-	a(1), b(1),  //a - column height, b - depth and width
+	a(10), b(1),  //a - column height, b - depth and width
 	//E(2.129159824046921), nu(0.2998533724340176),
-	E(10), nu(0.45),
-	K(1.0e-8),
+	E(100), nu(0.45),
+	K(1.0e-11),
 	//K(9.98e-10), 
 	alpha(1.0), 
 	//M(5446.623), 
-	M(10000),
-	mu(1.0e-2), 
+	M(100000),
+	mu(1.0e-3), 
 	F(10),
 	//derived parameters
 	lambda(E* nu / (1 + nu) / (1 - 2 * nu)), 
