@@ -39,11 +39,11 @@ Test5::Test5()
 	// nu = lambda/(2*(lambda+G))
 	//a(1), b(1), E(1.0e+3), nu(0.25),
 	//K(0.01), alpha(1.0), M(0.1), mu(1), F(10),
-	a(1), b(1), 
+	a(1), b(2), 
 	//E(2.129159824046921), nu(0.2998533724340176),
-	E(10), nu(0.45),
+	E(2.5), nu(0.45),
 	//K(9.98e-10), 
-	K(1.0e-8),
+	K(1.0e-9),
 	alpha(1.0), 
 	//M(5446.623), 
 	M(10000),
@@ -109,19 +109,27 @@ hMatrix Test5::Displacement(double _x, double _y, double _z, double _t) const
 	double wi;
 	sol.Zero();
 	int stop = -1;
-	sol(0, 0) = F / (G * a) * nu * _x / 2.0;
-	sol(1, 0) = F / (G * a) * (nu - 1) * _y / 2.0;
-	for (int i = 0; i < istop; ++i)
+	if (_t)
 	{
-		//cos(wi) = cnuu * sin(wi) / wi
-		wi = solvetri(cnuu,0.5 * pi + pi * i);
-		du = F / (G * a) * (a * sin(wi * _x / a) - nuu * _x * sin(wi)) * cos(wi) / (wi - sin(wi) * cos(wi)) * exp(-wi * wi * c * _t / a / a);
-		dv = F / (G * a) * (1 - nuu) * _y * sin(wi) * cos(wi) / (wi - sin(wi) * cos(wi)) * exp(-wi * wi * c * _t / a / a);
-		sol(0, 0) += du;
-		sol(1, 0) += dv;
-		if (std::fabs(get_value(du)) < epsuv * std::fabs(get_value(sol(0, 0))) && 
-			std::fabs(get_value(dv)) < epsuv * std::fabs(get_value(sol(1, 0))))
-			break;
+		sol(0, 0) = F / (G * a) * nu * _x / 2.0;
+		sol(1, 0) = F / (G * a) * (nu - 1) * _y / 2.0;
+		for (int i = 0; i < istop; ++i)
+		{
+			//cos(wi) = cnuu * sin(wi) / wi
+			wi = solvetri(cnuu, 0.5 * pi + pi * i);
+			du = F / (G * a) * (a * sin(wi * _x / a) - nuu * _x * sin(wi)) * cos(wi) / (wi - sin(wi) * cos(wi)) * exp(-wi * wi * c * _t / a / a);
+			dv = F / (G * a) * (1 - nuu) * _y * sin(wi) * cos(wi) / (wi - sin(wi) * cos(wi)) * exp(-wi * wi * c * _t / a / a);
+			sol(0, 0) += du;
+			sol(1, 0) += dv;
+			if (std::fabs(get_value(du)) < epsuv * std::fabs(get_value(sol(0, 0))) &&
+				std::fabs(get_value(dv)) < epsuv * std::fabs(get_value(sol(1, 0))))
+				break;
+		}
+	}
+	else
+	{
+		sol(0, 0) = F / (G * a) * nuu * _x / 2.0;
+		sol(1, 0) = F / (G * a) * (nuu - 1) * _y / 2.0;
 	}
 	return sol;
 }
@@ -132,7 +140,6 @@ hessian_variable Test5::Pressure(double _x, double _y, double _z, double _t) con
 	double sol = 0, dp;
 	const double cnuu = (nuu - nu) / (1 - nu);
 	const double p0 = F * B * (1 + nuu) / (3.0 * a);
-//#pragma omp critical
 	if (_t)
 	{
 		for (int i = 0; i < istop; ++i)
@@ -141,15 +148,9 @@ hessian_variable Test5::Pressure(double _x, double _y, double _z, double _t) con
 			//sin(wi) = wi*cos(wi)/cnuu
 			double wi = solvetri(cnuu, 0.5 * pi + pi * i);
 			dp = 2.0 * p0 * sin(wi) / (wi - sin(wi) * cos(wi)) * (cos(wi * _x / a) - cos(wi)) * exp(-wi * wi * c * _t / a / a);
-			//dp = 2 * F * B * (1 + nuu) / (3.0 * a) * sin(wi) / (wi - sin(wi) * cos(wi)) * (cos(wi * _x / a) - cos(wi)) * exp(-wi * wi * c * _t / a / a);
-			//dp = 2 * F * B * (1 + nuu) / (3.0 * a) * sin(wi) / (wi - sin(wi) * cos(wi)) * (cos(wi * _x / a) ) * exp(-wi * wi * c * _t / a / a);
 			sol += dp;
 			if (std::fabs(get_value(dp)) < epsp * std::fabs(get_value(sol)))
-			{
-//#pragma omp critical
-//				std::cout << i << " p " << sol << " p0 " << F * B * (1 + nuu) / (3.0 * a) << std::endl;
 				break;
-			}
 		}
 	}
 	else sol = p0;

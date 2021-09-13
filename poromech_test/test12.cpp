@@ -150,6 +150,7 @@ Test12::Test12()
 	std::cout << "nuzx: " << nuzx << " nuyx: " << nuyx << std::endl;
 	std::cout << "Ks: " << Ks << " Kf " << Kf << std::endl;
 	std::cout << "M11: " << M11 << " M12 " << M12 << " M13 " << M13 << " M33 " << M33 << " M55 " << M55 << " c1 " << c1 << " A1 " << A1 << " A2 " << A2 << std::endl;
+	std::cout << "C11: " << C(0,0) << " C12 " << C(0,1) << " C13 " << C(0,2) << " C33 " << C(2,2) << " C55 " << C(4,4) << std::endl;
 }
 
 

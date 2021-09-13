@@ -31,7 +31,7 @@ Test8::Test8()
 	a(10), b(1),  //a - column height, b - depth and width
 	//E(2.129159824046921), nu(0.2998533724340176),
 	E(25), nu(0.45),
-	K(1.0e-10),
+	K(1.0e-11),
 	//K(9.98e-10), 
 	alpha(1.0), 
 	//M(5446.623), 0.00103299
@@ -69,33 +69,31 @@ hMatrix Test8::Displacement(double _x, double _y, double _z, double _t) const
 {
 	unknown x(_x,0), y(_y,1), z(_z,2), t(_t,3);
 	hMatrix sol(3,1);
-	//const double u0 = F * (a - _x) * (1 - 2 * nuu) / (2 * G *(1 - nuu));
-	//const double cmg = (nuu - nu) / (2 * G * (1 - nu) * (1 - nuu));
 	double du;
-	double cu = -4.0 * F * a * (nuu - nu) / (G * pi * pi * (1 - nu) * (1 - nuu));
+	const double cu = -4.0 * F * a * (nuu - nu) / (G * pi * pi * (1 - nu) * (1 - nuu));
 	sol.Zero();
-	sol(0, 0) = F * (1 - 2*nu) * (a-_x) / (2 * G * (1-nu));
-	//sol(0, 0) = u0 + cmg*F*(a-_x);
-	for (int i = 0; i < istop; ++i)
+	if (_t)
 	{
-		du = cu * exp(-std::pow(1 + 2 * i, 2) * pi * pi * c * _t / 4.0 / a / a) * cos((1+2*i)*pi*_x/2.0/a)/ std::pow(1 + 2 * i, 2);
-		//du = -8 * a / pi / pi * cmg * F * exp(-std::pow(1 + 2 * i, 2) * pi * pi * c * _t / 4.0 / a / a) * cos((1 + 2 * i) * pi * _x / 2.0 / a) / std::pow(1 + 2 * i, 2);
-		sol(0, 0) += du;
-		if (std::fabs(get_value(du)) < errtol * std::fabs(get_value(sol(0, 0))))
-			break;
-	}
-//#pragma omp critical
-//	std::cout << "z " << (a - _x) << " w " << get_value(sol(0, 0)) << " w/z " << get_value(sol(0, 0))/(a-_x) <<  " t " << _t << std::endl;
-	if (sol.CheckNansInfs())
-	{
-#pragma omp critical
+		sol(0, 0) = F * (1 - 2 * nu) * (a - _x) / (2 * G * (1 - nu));
+		for (int i = 0; i < istop; ++i)
 		{
-			std::cout << "Bad sol" << std::endl;
-			sol.Print();
-			std::cout << "du: " << std::endl;
-			std::cout << get_value(du) << std::endl;
+			du = cu * exp(-std::pow(1 + 2 * i, 2) * pi * pi * c * _t / 4.0 / a / a) * cos((1 + 2 * i) * pi * _x / 2.0 / a) / std::pow(1 + 2 * i, 2);
+			sol(0, 0) += du;
+			if (std::fabs(get_value(du)) < errtol * std::fabs(get_value(sol(0, 0))))
+				break;
+		}
+		if (sol.CheckNansInfs())
+		{
+#pragma omp critical
+			{
+				std::cout << "Bad sol" << std::endl;
+				sol.Print();
+				std::cout << "du: " << std::endl;
+				std::cout << get_value(du) << std::endl;
+			}
 		}
 	}
+	else sol(0, 0) = F * (1 - 2 * nuu) * (a - _x) / (2 *G * (1 - nuu));
 	return sol;
 }
 
@@ -110,14 +108,17 @@ hessian_variable Test8::Pressure(double _x, double _y, double _z, double _t) con
 	unknown x(_x,0), y(_y,1), z(_z,2), t(_t,3);
 	const double p0 = F * B * (1 + nuu) / 3.0 / (1 - nuu);
 	double sol = p0, dp, ep, em;
-	for (int i = 0; i < istop; ++i)
+	if (_t)
 	{
-		ep = std::erfc(((1.0 + 2.0 * i) * a + (_x - a)) / std::sqrt(4.0 * c * _t));
-		em = std::erfc(((1.0 + 2.0 * i) * a - (_x - a)) / std::sqrt(4.0 * c * _t));
-		dp = p0*std::pow(-1, i + 1) * (em + ep);
-		sol += dp;
-		if (std::fabs(get_value(dp)) < errtol * std::fabs(get_value(sol)))
-			break;
+		for (int i = 0; i < istop; ++i)
+		{
+			ep = std::erfc(((1.0 + 2.0 * i) * a + (_x - a)) / std::sqrt(4.0 * c * _t));
+			em = std::erfc(((1.0 + 2.0 * i) * a - (_x - a)) / std::sqrt(4.0 * c * _t));
+			dp = p0 * std::pow(-1, i + 1) * (em + ep);
+			sol += dp;
+			if (std::fabs(get_value(dp)) < errtol * std::fabs(get_value(sol)))
+				break;
+		}
 	}
 	if (check_nans_infs(sol))
 	{
