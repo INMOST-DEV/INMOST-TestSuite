@@ -1282,13 +1282,13 @@ void vMatrixPrint(const vMatrix & m, double tol)
 rMatrix GenIsotropicTensor(double E, double nu)
 {
 	rMatrix C(6,6,0.0);
-	double lambda = E*nu/((1+nu)*(1-2*nu));
-	double mu = E/(2*(1+nu));
-	C(0,0) = C(1,1) = C(2,2) = lambda + 2*mu;
+	double lambda = E * nu / (1 + nu) / (1 - 2 * nu);
+	double G = E/(2*(1+nu));
+	C(0,0) = C(1,1) = C(2,2) = lambda + 2*G;
 	C(0,1) = C(1,0) = lambda;
 	C(0,2) = C(2,0) = lambda;
 	C(1,2) = C(2,1) = lambda;
-	C(3,3) = C(4,4) = C(5,5) = mu;
+	C(3,3) = C(4,4) = C(5,5) = G;
 	return C;
 }
 

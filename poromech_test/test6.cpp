@@ -22,7 +22,7 @@ const int nqmax = 5000;
 const int nqmax_ = 500;
 const int nqmax2 = 2*nqmax_*nqmax_;
 const double pi = 3.1415926535897932384626433832795;
-const double errtol = 1e-7;
+const double errtol = 1e-8;
 
 double Test6::Gravity() const {return 0.0;}
 double Test6::FluidDensity() const {return 1;}
@@ -33,6 +33,7 @@ double Test6::InverseBiotModulus(double _x, double _y, double _z) const { return
 
 Test6::Test6()
 : E(1.0e+3), nu(0.25), a(1), b(1), K(0.01), alpha(1.0), aQ(0.1), 
+  //E(10), nu(0.25), a(1), b(1), K(1e-3), alpha(1.0), aQ(0.1),
   x0(0.25), y0(0.25), M(0), //q0(0.03), 
   //G(E/(2.0*(1+nu))),m(1.0/(1-2*nu)),lambda_f(K/mu),chi(lambda_f*M)
 	lambda(E* nu / (1 + nu) / (1 - 2 * nu)), G(E / (1 + nu) / 2.0),

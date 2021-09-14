@@ -28,6 +28,10 @@ class Test12 : public AbstractTest
 	const bool forcebc; // set top force or displacement
 	INMOST::rMatrix C, K, B;
 	std::vector<double> wi; //trigonometric equation roots
+	INMOST::Cell cmandelcryer;
+	mutable std::ofstream mandelcryer;
+	mutable double Tlast;
+	INMOST::MarkerType integral_bc;
 public:
 	Test12();
 	//media characteristics, tensors

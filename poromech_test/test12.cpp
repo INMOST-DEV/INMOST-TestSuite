@@ -101,7 +101,7 @@ Test12::Test12()
 	Ex(2.5), Ey(Ex), Ez(1.5),
 	nuxy(0.15), nuxz(0.35), nuyz(nuxz),
 	Gxy(0.5 * Ex / (1 + nuxy)), Gxz(2), Gyz(Gxz),
-	k1(1.0e-6), k2(k1), k3(1.0e-8),
+	k1(1.0e-4), k2(k1), k3(1.0e-6),
 	mu(0.01),
 	Ks(3.0/((1.0-2*nuxy-2*nuxz)/Ex + (1.0-2*nuyz)/Ey + 1.0/Ez)), 
 	//Ks(1.0/(1.0/Ex+1.0/Ey+1.0/Ez)),
@@ -151,6 +151,11 @@ Test12::Test12()
 	std::cout << "Ks: " << Ks << " Kf " << Kf << std::endl;
 	std::cout << "M11: " << M11 << " M12 " << M12 << " M13 " << M13 << " M33 " << M33 << " M55 " << M55 << " c1 " << c1 << " A1 " << A1 << " A2 " << A2 << std::endl;
 	std::cout << "C11: " << C(0,0) << " C12 " << C(0,1) << " C13 " << C(0,2) << " C33 " << C(2,2) << " C55 " << C(4,4) << std::endl;
+	std::cout << "consolidation: " << c1 << std::endl;
+
+	mandelcryer.open("mandelcryer.csv", std::ios::out);
+	mandelcryer << "T;P;refP" << std::endl;
+	Tlast = 0;
 }
 
 
@@ -279,6 +284,35 @@ void Test12::Init(Mesh& m)
 			c[k] = (c[k] - cmin[k]) / (cmax[k] - cmin[k]) * s[k];
 	}
 	//m.RecomputeGeometricData();
+
+	s[0] = 0;
+	s[1] = 0.5 * a;
+	s[2] = 0;
+	double lmin = 1.0e+20, cnt[3];
+	for (Mesh::iteratorCell it = m.BeginCell(); it != m.EndCell(); ++it)
+	{
+		it->Centroid(cnt);
+		double l = 0.0;
+		for (int k = 0; k < 3; ++k)
+			l += std::pow(s[k] * 0.5 - cnt[k], 2);
+		l = std::sqrt(l);
+		if (l < lmin)
+		{
+			cmandelcryer = it->self();
+			lmin = l;
+		}
+	}
+	cmandelcryer.Centroid(cnt);
+	std::cout << "Cell for Mandel-Cryer effect: " << cmandelcryer.LocalID() << " at " << cnt[0] << " " << cnt[1] << " " << cnt[2] << std::endl;
+
+
+	if (!forcebc)
+	{
+		integral_bc = m.CreateMarker();
+		m.self().Real(m.CreateTag("FORCE_CONSTRAINT_VALUE", DATA_REAL, MESH, NONE, 1)) = F * a * a;
+		m.self().Integer(m.CreateTag("FORCE_CONSTRAINT_MARKER", DATA_INTEGER, MESH, NONE, 1)) = integral_bc;
+		m.self().Real(m.CreateTag("LAGRANGIAN", DATA_REAL, MESH, NONE, 1)) = get_value(Displacement(0.5*a ,0.5*a, b, 0)(2, 0));
+	}
 }
 
 void Test12::SetBC(Mesh & m, double T, MarkerType boundary) const
@@ -287,6 +321,8 @@ void Test12::SetBC(Mesh & m, double T, MarkerType boundary) const
 	Automatizator::RemoveCurrent();
 	TagRealArray tag_BC_flow = m.GetTag("BOUNDARY_CONDITION_FLOW");
 	TagRealArray tag_BC_mech = m.GetTag("BOUNDARY_CONDITION_ELASTIC");
+	rMatrix UVW = Displacement(0.5*a,0.5*a,b, T);
+	std::cout << "Top analytical displacement: " << UVW(0, 0) << " " << UVW(1, 0) << " " << UVW(2, 0) << " T = " << T << std::endl;
 #if defined(USE_OMP)
 #pragma omp parallel for
 #endif
@@ -316,6 +352,18 @@ void Test12::SetBC(Mesh & m, double T, MarkerType boundary) const
 					tag_BC_mech[f][5] = -nrm[1] * F;
 					tag_BC_mech[f][6] = -nrm[2] * F;
 				}
+				else //integral constraint bc
+				{
+					tag_BC_mech[f][0] = 1; //D-perp
+					tag_BC_mech[f][1] = 0; //N-perp
+					tag_BC_mech[f][2] = 0; //D-parallel
+					tag_BC_mech[f][3] = 1; //N-parallel
+					tag_BC_mech[f][4] = 0;
+					tag_BC_mech[f][5] = 0;
+					tag_BC_mech[f][6] = 0;
+					f.SetMarker(integral_bc);
+				}
+				/*
 				else //analytical displacement
 				{
 					rMatrix UVW = Displacement(cnt[0], cnt[1], cnt[2], T);
@@ -328,6 +376,7 @@ void Test12::SetBC(Mesh & m, double T, MarkerType boundary) const
 					tag_BC_mech[f][5] = nrm[1] * nUVW;// -alpha * P);
 					tag_BC_mech[f][6] = nrm[2] * nUVW;// -alpha * P);
 				}
+				*/
 			}
 			else if (fabs(nrm[0] - 1) < 1.0e-6) // x-normal up
 			{
@@ -361,6 +410,14 @@ void Test12::SetBC(Mesh & m, double T, MarkerType boundary) const
 void Test12::SetForce(Mesh& m, const INMOST::dynamic_variable& p, double T) const
 {
 	//TagVariableArray tag_F = m.GetTag("FORCE");
+	if (T && T != Tlast && m.HaveTag("P") && m.HaveTag("REF_P"))
+	{
+		TagReal tag_P = m.GetTag("P");
+		TagReal tag_rP = m.GetTag("REF_P");
+		mandelcryer << T << ";" << tag_P[cmandelcryer] << ";" << tag_rP[cmandelcryer] << std::endl;
+		Tlast = T;
+	}
+
 }
 
 

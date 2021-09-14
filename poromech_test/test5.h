@@ -23,6 +23,10 @@ class Test5 : public AbstractTest
 	const double c; // consolidation coefficient
 	const bool forcebc; // set top force or displacement
 	INMOST::rMatrix C0, K0, B0;
+	INMOST::Cell c1; //cell to record mandel-cryer effect
+	INMOST::MarkerType integral_bc; //boundary conditions with integral value
+	mutable std::ofstream mandelcryer;
+	mutable double Tlast;
 public:
 	Test5();
 	//media characteristics, tensors

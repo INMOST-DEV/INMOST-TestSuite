@@ -6,8 +6,8 @@
 using namespace INMOST;
 
 const int istop = 1000000;
-const double epsuv = 1.0e-11;
-const double epsp = 1.0e-11;
+const double epsuv = 1.0e-13;
+const double epsp = 1.0e-13;
 const double epsnln = 1.0e-13;
 //shortcut for types
 typedef Storage::real real;
@@ -20,10 +20,10 @@ const double pi = 3.1415926535897932384626433832795;
 const double errtol = 1e-7;
 
 double Test5::Gravity() const {return 0.0;}
-double Test5::FluidDensity() const {return 998.2;}
+double Test5::FluidDensity() const {return 1;}
 double Test5::FluidViscosity() const {return mu;}
-double Test5::SolidDensity() const {return 2000;}
-double Test5::Porosity(double _x, double _y, double _z) const {return 0.3;}
+double Test5::SolidDensity() const {return 1;}
+double Test5::Porosity(double _x, double _y, double _z) const {return 0.5;}
 double Test5::InverseBiotModulus(double _x, double _y, double _z) const { return M ? 1.0/M : 0.0; }
 
 Test5::Test5()
@@ -41,23 +41,25 @@ Test5::Test5()
 	//K(0.01), alpha(1.0), M(0.1), mu(1), F(10),
 	a(1), b(2), 
 	//E(2.129159824046921), nu(0.2998533724340176),
-	E(2.5), nu(0.45),
+	E(25), nu(0.25),
 	//K(9.98e-10), 
-	K(1.0e-9),
+	K(1.0e-6),
 	alpha(1.0), 
 	//M(5446.623), 
 	M(10000),
 	//mu(1.002e-3), 
-	mu(0.01),
+	mu(1e-3),
 	F(10),
-	forcebc(true),
+	forcebc(false),
 	//derived parameters
 	lambda(E* nu / (1 + nu) / (1 - 2 * nu)), 
 	G(E / (1 + nu) / 2.0),
 	Ku(lambda + 2 * G / 3.0 + alpha * alpha * M),
 	B(alpha*M/Ku),
+	//B(3*alpha*(1-2*nu)*M/(E+3*alpha*alpha*(1-2*nu)*M)),
 	nuu( (3*nu + alpha*B*(1-2*nu))/(3 - alpha*B*(1-2*nu)) ),
 	c( 2*K*G*(1-nu)*(nuu-nu)/(mu*alpha*alpha*(1-nuu)*(1-2*nu)*(1-2*nu)))
+	//c(2*K/mu*B*B*G*(1-nu)*(1+nuu)*(1+nuu)/9.0/(1-nuu)/(nuu-nu))
 {
 	std::cout << "E: " << E << " nu: " << nu << std::endl;
 	std::cout << "K: " << K << " M " << M << std::endl;
@@ -66,6 +68,7 @@ Test5::Test5()
 	std::cout << "consolidation coefficient: " << c << std::endl;
 	std::cout << "undrained Poisson: " << nuu << std::endl;
 	std::cout << "Skempton's coefficient: " << B << std::endl;
+	std::cout << "restore alpha: " << 3.0 * (nuu - nu) / (B * (1 - 2 * nu) * (1 + nuu)) << std::endl;
 	//double B2 = 3.0 * (nuu - nu) / (alpha * (1 - 2 * nu) * (1 + nuu));
 	//double c2 = 2.0 * K * B2 * B2 * G * (1 - nu) * (1 + nuu) * (1 + nuu) / (9.0 * (1 - nuu) * (nuu - nu));
 	//std::cout << "Skempton's 2: " << B2 << " consolidation 2: " << c2 << std::endl;
@@ -73,6 +76,10 @@ Test5::Test5()
 	B0 = rMatrix::Unit(3)*alpha;
 	K0 = rMatrix::Unit(3)*K;
 	C0 = GenIsotropicTensor(E,nu);
+
+	mandelcryer.open("mandelcryer.csv",std::ios::out);
+	mandelcryer << "T;P;refP" << std::endl;
+	Tlast = 0;
 }
 
 
@@ -117,6 +124,7 @@ hMatrix Test5::Displacement(double _x, double _y, double _z, double _t) const
 		{
 			//cos(wi) = cnuu * sin(wi) / wi
 			wi = solvetri(cnuu, 0.5 * pi + pi * i);
+			if (std::fabs(wi - (0.5 * pi + pi * i)) > pi) std::cout << "solution is too far! " << i << " wi " << wi << " guess " << 0.5 * pi + pi * i << std::endl;
 			du = F / (G * a) * (a * sin(wi * _x / a) - nuu * _x * sin(wi)) * cos(wi) / (wi - sin(wi) * cos(wi)) * exp(-wi * wi * c * _t / a / a);
 			dv = F / (G * a) * (1 - nuu) * _y * sin(wi) * cos(wi) / (wi - sin(wi) * cos(wi)) * exp(-wi * wi * c * _t / a / a);
 			sol(0, 0) += du;
@@ -147,6 +155,7 @@ hessian_variable Test5::Pressure(double _x, double _y, double _z, double _t) con
 			//cos(wi) = cnuu * sin(wi) / wi
 			//sin(wi) = wi*cos(wi)/cnuu
 			double wi = solvetri(cnuu, 0.5 * pi + pi * i);
+			if (std::fabs(wi - (0.5 * pi + pi * i)) > pi) std::cout << "solution is too far! " << i << " wi " << wi << " guess " << 0.5 * pi + pi * i << std::endl;
 			dp = 2.0 * p0 * sin(wi) / (wi - sin(wi) * cos(wi)) * (cos(wi * _x / a) - cos(wi)) * exp(-wi * wi * c * _t / a / a);
 			sol += dp;
 			if (std::fabs(get_value(dp)) < epsp * std::fabs(get_value(sol)))
@@ -206,6 +215,34 @@ void Test5::Init(Mesh& m)
 		for (int k = 0; k < c.size(); ++k)
 			c[k] = (c[k] - cmin[k]) / (cmax[k] - cmin[k]) * s[k];
 	}
+	s[0] = 0;
+	s[1] = 0;
+	s[2] = 0.5 * a;
+	double lmin = 1.0e+20, cnt[3];
+	for (Mesh::iteratorCell it = m.BeginCell(); it != m.EndCell(); ++it)
+	{
+		it->Centroid(cnt);
+		double l = 0.0;
+		for(int k = 0; k < 3; ++k)
+			l += std::pow(s[k] * 0.5 - cnt[k],2);
+		l = std::sqrt(l);
+		if (l < lmin)
+		{
+			c1 = it->self();
+			lmin = l;
+		}
+	}
+	c1.Centroid(cnt);
+	std::cout << "Cell for Mandel-Cryer effect: " << c1.LocalID() << " at " << cnt[0] << " " << cnt[1] << " " << cnt[2] << std::endl;
+
+
+	if (!forcebc)
+	{
+		integral_bc = m.CreateMarker();
+		m.self().Real(m.CreateTag("FORCE_CONSTRAINT_VALUE", DATA_REAL, MESH, NONE, 1)) = F * a * a;
+		m.self().Integer(m.CreateTag("FORCE_CONSTRAINT_MARKER", DATA_INTEGER, MESH, NONE, 1)) = integral_bc;
+		m.self().Real(m.CreateTag("LAGRANGIAN", DATA_REAL, MESH, NONE, 1)) = get_value(Displacement(0, b, 0, 0)(1, 0));
+	}
 	//m.RecomputeGeometricData();
 }
 
@@ -215,6 +252,8 @@ void Test5::SetBC(Mesh & m, double T, MarkerType boundary) const
 	Automatizator::RemoveCurrent();
 	TagRealArray tag_BC_flow = m.GetTag("BOUNDARY_CONDITION_FLOW");
 	TagRealArray tag_BC_mech = m.GetTag("BOUNDARY_CONDITION_ELASTIC");
+	//rMatrix UVW = Displacement(0.5*a,b,0.5*a, T);
+	//std::cout << "Top analytical displacement: " << UVW(0, 0) << " " << UVW(1, 0) << " " << UVW(2, 0) << std::endl;
 #if defined(USE_OMP)
 #pragma omp parallel for
 #endif
@@ -244,18 +283,31 @@ void Test5::SetBC(Mesh & m, double T, MarkerType boundary) const
 					tag_BC_mech[f][5] = -nrm[1] * F;
 					tag_BC_mech[f][6] = -nrm[2] * F;
 				}
+				else //integral constraint bc
+				{
+					tag_BC_mech[f][0] = 1; //D-perp
+					tag_BC_mech[f][1] = 0; //N-perp
+					tag_BC_mech[f][2] = 0; //D-parallel
+					tag_BC_mech[f][3] = 1; //N-parallel
+					tag_BC_mech[f][4] = 0;
+					tag_BC_mech[f][5] = 0;
+					tag_BC_mech[f][6] = 0;
+					f.SetMarker(integral_bc);
+				}
+				/*
 				else //analytical displacement
 				{
-					rMatrix UVW = Displacement(cnt[0], cnt[1], cnt[2], T);
+					//rMatrix UVW = Displacement(cnt[0], cnt[1], cnt[2], T);
 					double nUVW = nrm[0] * UVW(0, 0) + nrm[1] * UVW(1, 0) + nrm[2] * UVW(2, 0);
 					tag_BC_mech[f][0] = 1; //D-perp
 					tag_BC_mech[f][1] = 0; //N-perp
 					tag_BC_mech[f][2] = 0; //D-parallel
 					tag_BC_mech[f][3] = 1; //N-parallel
-					tag_BC_mech[f][4] = nrm[0] * nUVW;// -alpha * P);
-					tag_BC_mech[f][5] = nrm[1] * nUVW;// -alpha * P);
-					tag_BC_mech[f][6] = nrm[2] * nUVW;// -alpha * P);
+					tag_BC_mech[f][4] = nrm[0] * nUVW;
+					tag_BC_mech[f][5] = nrm[1] * nUVW;
+					tag_BC_mech[f][6] = nrm[2] * nUVW;
 				}
+				*/
 			}
 			else if (fabs(nrm[0] - 1) < 1.0e-6) // x-normal up
 			{
@@ -272,6 +324,23 @@ void Test5::SetBC(Mesh & m, double T, MarkerType boundary) const
 				tag_BC_mech[f][5] = 0;
 				tag_BC_mech[f][6] = 0;
 			}
+			/*
+			else if (fabs(fabs(nrm[2]) - 1) < 1.0e-6) // z-normal
+			{
+				//fluid
+				tag_BC_flow[f][0] = 0;
+				tag_BC_flow[f][1] = 1;
+				tag_BC_flow[f][2] = 0;
+				//mech
+				tag_BC_mech[f][0] = 0; //D-perp
+				tag_BC_mech[f][1] = 1; //N-perp
+				tag_BC_mech[f][2] = 0; //D-parallel
+				tag_BC_mech[f][3] = 1; //N-parallel
+				tag_BC_mech[f][4] = 0;
+				tag_BC_mech[f][5] = 0;
+				tag_BC_mech[f][6] = 0;
+			}
+			*/
 			else
 			{
 				tag_BC_flow(f,3,1)(0,2,0,1) = BCFlow_coef(cnt[0],cnt[1],cnt[2],T);
@@ -289,6 +358,13 @@ void Test5::SetBC(Mesh & m, double T, MarkerType boundary) const
 void Test5::SetForce(Mesh& m, const INMOST::dynamic_variable& p, double T) const
 {
 	//TagVariableArray tag_F = m.GetTag("FORCE");
+	if (T && T != Tlast && m.HaveTag("P") && m.HaveTag("REF_P") )
+	{
+		TagReal tag_P = m.GetTag("P");
+		TagReal tag_rP = m.GetTag("REF_P");
+		mandelcryer << T << ";" << tag_P[c1] << ";" << tag_rP[c1] << std::endl;
+		Tlast = T;
+	}
 }
 
 
