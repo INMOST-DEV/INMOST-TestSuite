@@ -265,7 +265,7 @@ void Test12::Init(Mesh& m)
 	double cmin[3] = { +1.0e+20,+1.0e+20,+1.0e+20 }, cmax[3] = { -1.0e+20,-1.0e+20,-1.0e+20 };
 	for (Mesh::iteratorNode it = m.BeginNode(); it != m.EndNode(); ++it) 
 	{
-		real_array& c = it->Coords();
+		real_array c = it->Coords();
 		for (int k = 0; k < c.size(); ++k)
 		{
 			cmin[k] = std::min(cmin[k], c[k]);
@@ -279,7 +279,7 @@ void Test12::Init(Mesh& m)
 	double s[3] = { a, a, b };
 	for (Mesh::iteratorNode it = m.BeginNode(); it != m.EndNode(); ++it)
 	{
-		real_array& c = it->Coords();
+		real_array c = it->Coords();
 		for (int k = 0; k < c.size(); ++k)
 			c[k] = (c[k] - cmin[k]) / (cmax[k] - cmin[k]) * s[k];
 	}

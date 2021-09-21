@@ -14,7 +14,8 @@ add_library(POROMECH_TEST
 		test10.cpp test10.h
 		test11.cpp test11.h
 		test12.cpp test12.h
-		test13.cpp test13.h)
+		test13.cpp test13.h
+		test14.cpp test14.h)
 
 set_property(TARGET POROMECH_TEST PROPERTY PUBLIC_HEADER abstract_test.h)
 

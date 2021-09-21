@@ -12,13 +12,12 @@ test10 : norne field
 test11 : two wells stability
 test12 : transversally isotropic Mandel problem
 test13 : two wells, left part - poromech, right part - darcy
-test14 : anisotropic Mandel problem (not implemented)
+test14 : spe10 field
 test15 : Cryer's sphere (not implemented)
 
 Todo:
 1. rename test files
 2. Axis rotation matrices in Voigt notation
-3. anisotropic Mandel problem
-4. Cryer's sphere
+3. Cryer's sphere
 
 

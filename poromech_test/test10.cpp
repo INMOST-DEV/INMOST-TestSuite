@@ -171,11 +171,11 @@ void Test10::SetBC(Mesh & m, double T, MarkerType boundary) const
 	TagRealArray tag_BC_mech = m.GetTag("BOUNDARY_CONDITION_ELASTIC");
 	TagBulk      tag_BC_type = m.GetTag("BCFACEDIR");
 	real BCf[3] = {0,1,0};
-	real BCm_bottom[7] = {1,0,1,0,0,0,0};
-	//real BCm_bottom[7] = { 1,0,0,1,0,0,0 };
+	//real BCm_bottom[7] = {1,0,1,0,0,0,0};
+	real BCm_bottom[7] = { 1,0,0,1,0,0,0 };
 	real BCm_side[7] = {1,0,0,1,0,0,0};
-	real BCm_top[7] = {0,1,0,1,0,0,0};
-	//real BCm_top[7] = { 1,0,0,1,0,0,0 };
+	//real BCm_top[7] = {0,1,0,1,0,0,0};
+	real BCm_top[7] = { 1,0,0,1,0,0,0 };
 	//real BCm_top[7] = { 1,0,1,0,0,0,0 };
 	rMatrix mBCf(BCf, 3,1);
 	rMatrix mBCm_bottom(BCm_bottom, 7,1);
@@ -240,6 +240,7 @@ void Test10::SetForce(Mesh & m, const INMOST::dynamic_variable & p, double T) co
 
 void Test10::SetProperty(Mesh & m) const
 {
+	const bool avgprop = false;
 	//supposed to be defined on the mesh
 	TagReal poro = m.GetTag("PORO");
 	TagRealArray perm = m.GetTag("PERM");
@@ -262,7 +263,7 @@ void Test10::SetProperty(Mesh & m) const
 #pragma omp parallel
 #endif
 	{
-		rMatrix C(6, 6, 0.0);
+		//rMatrix C(6, 6, 0.0);
 #if defined(USE_OMP)
 #pragma omp for
 #endif
@@ -271,51 +272,44 @@ void Test10::SetProperty(Mesh & m) const
 			real cnt[3];
 			Cell c = m.CellByLocalID(it);
 			c.Barycenter(cnt);
-			//rMatrix U,S,V;
-			//perm(c,3,3).SVD(U,S,V);
 			
-			double S0 = perm(c,3,3)(0,0)*c.Volume();
-			double S1 = perm(c,3,3)(1,1)*c.Volume();
-			double S2 = perm(c,3,3)(2,2)*c.Volume();
-			
-			//perm(c,3,3) = rMatrix::Unit(3);
-			
-			ElementArray<Cell> around;// = c->BridgeAdjacencies2Cell(NODE);
-			double tot_vol = c.Volume();
-			double avg_poro = poro[c]*c.Volume();
-			//tag_B(c,3,3) = perm(c,3,3)*c.Volume();
-			if( !around.empty() )
-			for(ElementArray<Cell>::iterator kt = around.begin(); kt != around.end(); ++kt)
-			{
-				//tag_B(c,3,3) += perm(kt->self(),3,3)*kt->Volume();
-				avg_poro += poro[kt->self()]*kt->Volume();
-				S0 += perm(kt->self(),3,3)(0,0)*kt->Volume();
-				S1 += perm(kt->self(),3,3)(1,1)*kt->Volume();
-				S2 += perm(kt->self(),3,3)(2,2)*kt->Volume();
-				tot_vol += kt->Volume();
-			}
-			//tag_B(c,3,3) /= tot_vol;
-			avg_poro /= tot_vol;
-			S0 /= tot_vol;
-			S1 /= tot_vol;
-			S2 /= tot_vol;
-			
-			/*
-			double S0 = perm(c, 3, 3)(0, 0);
-			double S1 = perm(c, 3, 3)(1, 1);
-			double S2 = perm(c, 3, 3)(2, 2);
+			double S0 = perm(c,3,3)(0,0);
+			double S1 = perm(c,3,3)(1,1);
+			double S2 = perm(c,3,3)(2,2);
 			double avg_poro = poro[c];
-			*/
-			//tag_B(c,3,3) = perm(c,3,3)*0.0001;
-			//tag_B(c,3,3) = rMatrix::Unit(3);
-			//tag_B(c,3,3) = rMatrix::Unit(3)*avg_poro;
+
+
+			if (avgprop)
+			{
+				ElementArray<Cell> around;// = c->BridgeAdjacencies2Cell(NODE);
+				double tot_vol = c.Volume();
+				S0 *= tot_vol;
+				S1 *= tot_vol;
+				S2 *= tot_vol;
+				avg_poro *= tot_vol;
+				//tag_B(c,3,3) = perm(c,3,3)*c.Volume();
+				if (!around.empty())
+					for (ElementArray<Cell>::iterator kt = around.begin(); kt != around.end(); ++kt)
+					{
+						//tag_B(c,3,3) += perm(kt->self(),3,3)*kt->Volume();
+						avg_poro += poro[kt->self()] * kt->Volume();
+						S0 += perm(kt->self(), 3, 3)(0, 0) * kt->Volume();
+						S1 += perm(kt->self(), 3, 3)(1, 1) * kt->Volume();
+						S2 += perm(kt->self(), 3, 3)(2, 2) * kt->Volume();
+						tot_vol += kt->Volume();
+					}
+				//tag_B(c,3,3) /= tot_vol;
+				avg_poro /= tot_vol;
+				S0 /= tot_vol;
+				S1 /= tot_vol;
+				S2 /= tot_vol;
+			}
 			
-			//tag_B(c,3,3) = perm(c,3,3);
+			
 			tag_B(c,3,3) = rMatrix::Unit(3)*((avg_poro+1)*0.5);
-			//tag_B(c,3,3) = rMatrix::Unit(3);
 			tag_B(c,3,3).CheckNans();
 			
-			//real E1,E2,E3,nu12,nu13,nu23,G23,G13,G12;
+			real E1,E2,E3,nu12,nu13,nu23,G23,G13,G12;
 			
 			
 			// transversal isotropy:
@@ -351,7 +345,7 @@ void Test10::SetProperty(Mesh & m) const
 			nu23 = 0.2 / E3 * E2;
 			*/
 
-			/*
+			
 			E1 = S0 * 1000;
 			E2 = S1 * 1000;
 			E3 = S2 * 1000;
@@ -417,52 +411,10 @@ void Test10::SetProperty(Mesh & m) const
 				}
 			}
 			else std::cout << __FILE__ << ":" << __LINE__ << " do not know what to do with elasticity tensor of size " << tag_E.GetSize() << std::endl;
-			*/
-
-			real E1, E2, E3, nu21, nu12, nu31, nu13, nu32, nu23, G23, G13, G12;
-
-
-
-			E1 = S0;
-			E2 = S1;
-			E3 = S2;
-			nu21 = 0.1;
-			nu12 = nu21 * E1 / E2;
-			nu31 = 0.1;
-			nu13 = nu31 * E1 / E3;
-			nu32 = 0.2;
-			nu23 = nu32 * E2 / E3;
-			G23 = 0.5 * S0;
-			G13 = 0.5 * S1;
-			G12 = 0.5 * S2;
-			C(0, 0) = 1.0 / E1;
-			C(0, 1) = -nu21 / E2;
-			C(0, 2) = -nu31 / E3;
-			C(1, 0) = -nu12 / E1;
-			C(1, 1) = 1.0 / E2;
-			C(1, 2) = -nu32 / E3;
-			C(2, 0) = -nu13 / E1;
-			C(2, 1) = -nu23 / E2;
-			C(2, 2) = 1.0 / E3;
-			C(3, 3) = 1.0 / (2.0 * G23);
-			C(4, 4) = 1.0 / (2.0 * G13);
-			C(5, 5) = 1.0 / (2.0 * G12);
-
-			//C.Print();
-			if (tag_E[c].size() == 21)
-			{
-				raSymmetricMatrix E = raSymmetricMatrixMake(tag_E[c].data(), 6);
-				E = C.Invert() * 1000;
-				E.CheckNans();
-			}
-			else if (tag_E[c].size() == 36)
-			{
-				tag_E(c, 6, 6) = C.Invert() * 1000;
-				tag_E(c, 6, 6).CheckNans();
-			}
-
-			//tag_M[c] = 0.5/(1.0 + avg_poro);
-			tag_M[c] = 0.5;
+			
+			tag_M[c] = 0.5/(1.0 + avg_poro);
+			//tag_M[c] = 0.5;
+			//tag_M[c] = 2;
 		}
 	}
 	std::cout << "Saving props.vtk" << std::endl;
