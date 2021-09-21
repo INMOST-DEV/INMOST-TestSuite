@@ -9,7 +9,7 @@ typedef Storage::var_array var_array;
 typedef Storage::real_array real_array;
 typedef Storage::reference_array ref_array;
 
-double Test14::Gravity() const {return -9.8;}
+double Test14::Gravity() const {return 0.0;}
 double Test14::FluidDensity() const {return 20;}
 double Test14::FluidViscosity() const {return 0.1;}
 double Test14::SolidDensity() const {return 120;}
@@ -26,7 +26,7 @@ double Test14::InverseBiotModulus(double _x, double _y, double _z) const
 
 
 
-Test14::Test14() : pbhp(400), WI(50000) {}
+Test14::Test14() : pbhp(400), WI(1000) {}
 
 vMatrix Test14::ElasticTensor(double _x, double _y, double _z) const
 {
@@ -84,20 +84,29 @@ void Test14::Init(Mesh & m)
 {
 	//prepare wells
 	int nx = 6, ny = 22, tot = nx*ny;
-	double wx = 60, wy = 220, wz = 85;
-	std::vector< double > cnt(tot*3);
-	double cntc[3];
-	for(int i = 0; i < nx; ++i)
-		for (int j = 0; j < ny; ++j)
-		{
-			std::cout << "i " << i << " j " << j << " ind " << (i + j * nx) <<  " center " << 0.5 + i * (wx - 1.0) / (nx - 1) << " " << 0.5 + j * (wy - 1.0) / (ny - 1) << " " << 0.5 + 0.5 * wz << std::endl;
-			cnt[(i + j * nx) * 3 + 0] = 0.5 + i * (wx - 1.0) / (nx - 1);
-			cnt[(i + j * nx) * 3 + 1] = 0.5 + j * (wy - 1.0) / (ny - 1);
-			cnt[(i + j * nx) * 3 + 2] = 0.5 + 0.5 * wz;
-		}
+	double wx = 240, wy = 440, wz = 340;
+	double hx = 240 / 60, hy = 440 / 220;
+	double cntc[3], cntw[3];
 	wellcells.SetMeshLink(&m);
-	wellcells.resize(tot);
-	TagReal tag_WI = m.CreateTag("WI",DATA_REAL,CELL,CELL,1);
+	SearchKDTree t(&m);
+	TagReal tag_WI = m.CreateTag("WI", DATA_REAL, CELL, CELL, 1);
+	for (int j = 0; j < ny; ++j)
+		for (int i = 0; i < nx; ++i)
+		{
+			cntw[0] = 0.5*hx + i * (wx - hx) / (nx - 1);
+			cntw[1] = 0.5*hy + j * (wy - hy) / (ny - 1);
+			cntw[2] = 0.5 * wz;
+			//std::cout << "i " << i << " j " << j << " ind " << (i + j * nx) << " center " << cntw[0] << " " << cntw[1] << " " << cntw[2] << std::endl;
+			Cell c = t.SearchCell(cntw,false);
+			if (c.isValid() && c.GetStatus() != Element::Ghost)
+			{
+				c->Centroid(cntc);
+				std::cout << "proc " << m.GetProcessorRank() << " found w" << (i + j * nx) << " cell " << c.LocalID() << " center " << cntc[0] << " " << cntc[1] << " " << cntc[2] << std::endl;
+				tag_WI[c] = WI;
+				wellcells.push_back(c);
+			}
+		}
+	/*
 	for(Mesh::iteratorCell it = m.BeginCell(); it != m.EndCell(); ++it) if( it->GetStatus() != Element::Ghost )
 	{
 		for(int q = 0; q < tot; ++q) if( !wellcells[q].isValid() && it->Inside(&cnt[q*3]) )
@@ -108,6 +117,7 @@ void Test14::Init(Mesh & m)
 			tag_WI[wellcells[q]] = WI;
 		}
 	}
+	*/
 	TagRealArray perm;
 	if( m.HaveTag("PERM") )
 		perm = m.GetTag("PERM");

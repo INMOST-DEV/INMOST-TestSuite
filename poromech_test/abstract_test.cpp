@@ -371,7 +371,7 @@ rMatrix AbstractTest::BCMech(double _x, double _y, double _z, double _t, double 
 
 void AbstractTest::SetForce(Mesh & m, const INMOST::dynamic_variable & p, double T) const
 {
-	if( func_output ) std::cout << __FUNCTION__ << " at time = " << T << std::endl;
+	if( func_output && !m.GetProcessorRank() ) std::cout << __FUNCTION__ << " at time = " << T << std::endl;
 	Automatizator * aut = Automatizator::GetCurrent();
 	Automatizator::RemoveCurrent();
 	TagVariableArray tag_F = m.GetTag("FORCE");
@@ -392,7 +392,7 @@ void AbstractTest::SetForce(Mesh & m, const INMOST::dynamic_variable & p, double
 
 void AbstractTest::SetBC(Mesh & m, double T,MarkerType boundary) const
 {
-	if( func_output ) std::cout << __FUNCTION__ << " at time = " << T << std::endl;
+	if( func_output && !m.GetProcessorRank()) std::cout << __FUNCTION__ << " at time = " << T << std::endl;
 	Automatizator * aut = Automatizator::GetCurrent();
 	Automatizator::RemoveCurrent();
 	TagRealArray tag_BC_flow = m.GetTag("BOUNDARY_CONDITION_FLOW");
@@ -423,7 +423,7 @@ void AbstractTest::SetBC(Mesh & m, double T,MarkerType boundary) const
 
 void AbstractTest::SetInitial(Mesh & m,double T, double Told, MarkerType orient) const
 {
-	if( func_output ) std::cout << __FUNCTION__ << " at time = " << T << " old time " << Told << std::endl;
+	if( func_output && !m.GetProcessorRank()) std::cout << __FUNCTION__ << " at time = " << T << " old time " << Told << std::endl;
 	Automatizator * aut = Automatizator::GetCurrent();
 	Automatizator::RemoveCurrent();
 	if( m.HaveTag("UVWP") )
