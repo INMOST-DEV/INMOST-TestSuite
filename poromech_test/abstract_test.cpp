@@ -454,7 +454,7 @@ void AbstractTest::SetInitial(Mesh & m,double T, double Told, MarkerType orient)
 			}
 		}
 		//std::cout << __FILE__ << ":" << __LINE__ << std::endl;
-		m.Save("init.vtk");
+		//m.Save("init.vtk");
 		return;
 	}
 	TagReal tag_P, tag_Pold, tag_nU;

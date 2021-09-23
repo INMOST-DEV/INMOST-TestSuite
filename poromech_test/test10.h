@@ -7,6 +7,7 @@
 
 class Test10 : public AbstractTest
 {
+	const double trans_scale;
 	double WI[3], pbhp[3];
 	INMOST::Cell cc[3];
 public:

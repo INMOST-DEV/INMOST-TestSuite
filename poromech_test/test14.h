@@ -7,6 +7,7 @@
 
 class Test14 : public AbstractTest
 {
+	const double trans_scale;
 	INMOST::ElementArray<INMOST::Cell> wellcells;
 	const double pbhp, WI;
 public:

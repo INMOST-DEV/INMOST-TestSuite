@@ -27,6 +27,8 @@ double Test10::InverseBiotModulus(double _x, double _y, double _z) const
 
 
 Test10::Test10()
+//: trans_scale(0.0085)
+	: trans_scale(1.0)
 {
 	WI[0] = 500000;
 	WI[1] = 500000;
@@ -107,23 +109,13 @@ void Test10::Init(Mesh & m)
 			tag_WI[cc[q]] = WI[q];
 		}
 	}
-	TagRealArray perm;
-	if( m.HaveTag("PERM") )
-		perm = m.GetTag("PERM");
-	if( perm.isValid() && perm.GetSize() != 9 )
+	
+	if (m.HaveTag("PERM"))
 	{
+		TagRealArray perm = m.GetTag("PERM");
 		int perm_size = perm.GetSize();
-		std::vector<real> perm_data;
-		for(Mesh::iteratorCell it = m.BeginCell(); it != m.EndCell(); ++it)
-			perm_data.insert(perm_data.end(),perm[it->self()].begin(),perm[it->self()].end());
-		int k = 0;
-		perm = m.DeleteTag(perm);
-		perm = m.CreateTag("PERM",DATA_REAL,CELL,NONE,9);
-		for(Mesh::iteratorCell it = m.BeginCell(); it != m.EndCell(); ++it)
-		{
-			perm(it->self(),3,3) = rMatrix::FromTensor(&perm_data[k*perm_size],perm_size,3);
-			k++;
-		}
+		for (Mesh::iteratorCell it = m.BeginCell(); it != m.EndCell(); ++it)
+			for (int k = 0; k < perm_size; ++k) perm[*it][k] *= trans_scale;
 	}
 	rMatrix I(3,3), E(3,3),n(3,1),x(3,1);
 	I = rMatrix::Unit(3);
@@ -259,6 +251,22 @@ void Test10::SetProperty(Mesh & m) const
 	TagRealArray tag_E = m.GetTag("ELASTIC_TENSOR");
 	TagRealArray tag_B = m.GetTag("BIOT_COEFFICIENT");
 	TagReal tag_M    = m.GetTag("INVERSE_BIOT_MODULUS");
+	double S0min = 1.0e+20, S0max = -1.0e+20;
+	double S1min = 1.0e+20, S1max = -1.0e+20;
+	double S2min = 1.0e+20, S2max = -1.0e+20;
+	for (int it = 0; it < m.CellLastLocalID(); ++it) if (m.isValidCell(it))
+	{
+		Cell c = m.CellByLocalID(it);
+		double S0 = perm[c][0];
+		double S1 = perm[c][1];
+		double S2 = perm[c][2];
+		S0min = std::min(S0, S0min);
+		S0max = std::max(S0, S0max);
+		S1min = std::min(S1, S1min);
+		S1max = std::max(S1, S1max);
+		S2min = std::min(S2, S2min);
+		S2max = std::max(S2, S2max);
+	}
 #if defined(USE_OMP)
 #pragma omp parallel
 #endif
@@ -273,9 +281,9 @@ void Test10::SetProperty(Mesh & m) const
 			Cell c = m.CellByLocalID(it);
 			c.Barycenter(cnt);
 			
-			double S0 = perm(c,3,3)(0,0);
-			double S1 = perm(c,3,3)(1,1);
-			double S2 = perm(c,3,3)(2,2);
+			double S0 = perm[c][0];
+			double S1 = perm[c][1];
+			double S2 = perm[c][2];
 			double avg_poro = poro[c];
 
 
@@ -293,9 +301,9 @@ void Test10::SetProperty(Mesh & m) const
 					{
 						//tag_B(c,3,3) += perm(kt->self(),3,3)*kt->Volume();
 						avg_poro += poro[kt->self()] * kt->Volume();
-						S0 += perm(kt->self(), 3, 3)(0, 0) * kt->Volume();
-						S1 += perm(kt->self(), 3, 3)(1, 1) * kt->Volume();
-						S2 += perm(kt->self(), 3, 3)(2, 2) * kt->Volume();
+						S0 += perm[kt->self()][0] * kt->Volume();
+						S1 += perm[kt->self()][1] * kt->Volume();
+						S2 += perm[kt->self()][2] * kt->Volume();
 						tot_vol += kt->Volume();
 					}
 				//tag_B(c,3,3) /= tot_vol;
@@ -345,7 +353,7 @@ void Test10::SetProperty(Mesh & m) const
 			nu23 = 0.2 / E3 * E2;
 			*/
 
-			
+			/*
 			E1 = S0 * 1000;
 			E2 = S1 * 1000;
 			E3 = S2 * 1000;
@@ -355,7 +363,21 @@ void Test10::SetProperty(Mesh & m) const
 			nu12 = 0.1 / E2 * E1;
 			nu13 = 0.1 / E3 * E1;
 			nu23 = 0.2 / E3 * E2;
-			
+			*/
+
+
+			E1 = (0.5 * (S0 - S0min) / (S0max - S0min) + 0.5) * 10000;
+			E2 = (0.5 * (S1 - S1min) / (S1max - S1min) + 0.5) * 10000;
+			E3 = (0.5 * (S2 - S2min) / (S2max - S2min) + 0.5) * 10000;
+			G23 = 5000 * (0.5 * (S0 - S0min) / (S0max - S0min) + 0.5);
+			G13 = 5000 * (0.5 * (S1 - S1min) / (S1max - S1min) + 0.5);
+			G12 = 5000 * (0.5 * (S2 - S2min) / (S2max - S2min) + 0.5);
+			nu12 = 0.1;// / E2 * E1;
+			nu13 = 0.1;// / E3 * E1;
+			nu23 = 0.2;// / E3 * E2;
+
+
+
 			//C.Print();
 			if (tag_E[c].size() == 21)
 			{
