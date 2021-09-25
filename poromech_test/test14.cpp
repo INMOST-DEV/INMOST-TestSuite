@@ -9,7 +9,7 @@ typedef Storage::var_array var_array;
 typedef Storage::real_array real_array;
 typedef Storage::reference_array ref_array;
 
-double Test14::Gravity() const { return 0.0; }
+double Test14::Gravity() const { return -0.01; }
 double Test14::FluidDensity() const {return 20;}
 double Test14::FluidViscosity() const {return 0.1;}
 double Test14::SolidDensity() const {return 120;}
@@ -26,7 +26,7 @@ double Test14::InverseBiotModulus(double _x, double _y, double _z) const
 
 
 
-Test14::Test14() : pbhp(400), WI(500000), trans_scale(1.0) {}
+Test14::Test14() : pbhp(80), WI(500000), trans_scale(1.0) {}
 
 vMatrix Test14::ElasticTensor(double _x, double _y, double _z) const
 {
