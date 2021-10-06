@@ -1,5 +1,5 @@
 #include "test8.h"
-
+#include <math.h>
 // [1] В.Е. Борисов, А.В. Иванов, Б.В. Критский, И.С.Меньшов, Е.Б.Савенков
 // Численное моделирование задач пороупругости
 
@@ -112,8 +112,8 @@ hessian_variable Test8::Pressure(double _x, double _y, double _z, double _t) con
 	{
 		for (int i = 0; i < istop; ++i)
 		{
-			ep = std::erfc(((1.0 + 2.0 * i) * a + (_x - a)) / std::sqrt(4.0 * c * _t));
-			em = std::erfc(((1.0 + 2.0 * i) * a - (_x - a)) / std::sqrt(4.0 * c * _t));
+			ep = erfc(((1.0 + 2.0 * i) * a + (_x - a)) / std::sqrt(4.0 * c * _t));
+			em = erfc(((1.0 + 2.0 * i) * a - (_x - a)) / std::sqrt(4.0 * c * _t));
 			dp = p0 * std::pow(-1, i + 1) * (em + ep);
 			sol += dp;
 			if (std::fabs(get_value(dp)) < errtol * std::fabs(get_value(sol)))
