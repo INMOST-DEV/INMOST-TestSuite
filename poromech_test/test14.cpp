@@ -97,7 +97,7 @@ void Test14::Init(Mesh & m)
 			cntw[1] = 0.5*hy + j * (wy - hy) / (ny - 1);
 			cntw[2] = 0.5 * wz;
 			//std::cout << "i " << i << " j " << j << " ind " << (i + j * nx) << " center " << cntw[0] << " " << cntw[1] << " " << cntw[2] << std::endl;
-			Cell c = t.SearchCell(cntw,false);
+			Cell c = t.SearchCell(cntw);// , false);
 			if (c.isValid() && c.GetStatus() != Element::Ghost)
 			{
 				c->Centroid(cntc);
