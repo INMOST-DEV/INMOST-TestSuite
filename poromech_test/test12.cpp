@@ -317,8 +317,6 @@ void Test12::Init(Mesh& m)
 
 void Test12::SetBC(Mesh & m, double T, MarkerType boundary) const
 {
-	Automatizator * aut = Automatizator::GetCurrent();
-	Automatizator::RemoveCurrent();
 	TagRealArray tag_BC_flow = m.GetTag("BOUNDARY_CONDITION_FLOW");
 	TagRealArray tag_BC_mech = m.GetTag("BOUNDARY_CONDITION_ELASTIC");
 	rMatrix UVW = Displacement(0.5*a,0.5*a,b, T);
@@ -402,7 +400,6 @@ void Test12::SetBC(Mesh & m, double T, MarkerType boundary) const
 			}
 		}
 	}
-	Automatizator::MakeCurrent(aut);
 }
 
 

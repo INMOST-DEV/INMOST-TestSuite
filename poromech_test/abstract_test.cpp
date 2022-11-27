@@ -372,8 +372,6 @@ rMatrix AbstractTest::BCMech(double _x, double _y, double _z, double _t, double 
 void AbstractTest::SetForce(Mesh & m, const INMOST::dynamic_variable & p, double T) const
 {
 	if( func_output && !m.GetProcessorRank() ) std::cout << __FUNCTION__ << " at time = " << T << std::endl;
-	Automatizator * aut = Automatizator::GetCurrent();
-	Automatizator::RemoveCurrent();
 	TagVariableArray tag_F = m.GetTag("FORCE");
 #if defined(USE_OMP)
 #pragma omp parallel for
@@ -386,15 +384,12 @@ void AbstractTest::SetForce(Mesh & m, const INMOST::dynamic_variable & p, double
 		c.Barycenter(cnt);
 		tag_F(c,4,1) = Force(cnt[0],cnt[1],cnt[2],T);
 	}
-	Automatizator::MakeCurrent(aut);
 }
 
 
 void AbstractTest::SetBC(Mesh & m, double T,MarkerType boundary) const
 {
 	if( func_output && !m.GetProcessorRank()) std::cout << __FUNCTION__ << " at time = " << T << std::endl;
-	Automatizator * aut = Automatizator::GetCurrent();
-	Automatizator::RemoveCurrent();
 	TagRealArray tag_BC_flow = m.GetTag("BOUNDARY_CONDITION_FLOW");
 	TagRealArray tag_BC_mech = m.GetTag("BOUNDARY_CONDITION_ELASTIC");
 #if defined(USE_OMP)
@@ -418,14 +413,11 @@ void AbstractTest::SetBC(Mesh & m, double T,MarkerType boundary) const
 			//std::cout << "u "; tag_BC_mech(f,7,1).Transpose().Print();
 		}
 	}
-	Automatizator::MakeCurrent(aut);
 }
 
 void AbstractTest::SetInitial(Mesh & m,double T, double Told, MarkerType orient) const
 {
 	if( func_output && !m.GetProcessorRank()) std::cout << __FUNCTION__ << " at time = " << T << " old time " << Told << std::endl;
-	Automatizator * aut = Automatizator::GetCurrent();
-	Automatizator::RemoveCurrent();
 	if( m.HaveTag("UVWP") )
 	{
 		TagRealArray tag_UVWP = m.GetTag("UVWP");
@@ -508,7 +500,6 @@ void AbstractTest::SetInitial(Mesh & m,double T, double Told, MarkerType orient)
 			tag_nU[f] = s*(nrm[0]*UVW(0,0) + nrm[1]*UVW(1,0) + nrm[2]*UVW(2,0));
 		}
 	}
-	Automatizator::MakeCurrent(aut);
 	//std::cout << __FILE__ << ":" << __LINE__ << std::endl;
 	//m.Save("init.vtk");
 }

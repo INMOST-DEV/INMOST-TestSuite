@@ -7,7 +7,7 @@
 using namespace INMOST;
 std::string problem_name = "two_wells_3d";
 
-#define V_ID(x, y, z) ((x)*n*n + (y)*n + (z))
+#define V_ID(x, y, z) ((x)*n*nz + (y)*nz + (z))
 
 void matmul(Storage::real * a, Storage::real * b, Storage::real * out)
 {
@@ -188,6 +188,8 @@ int main(int argc, char *argv[])
 	
 	
 	srand(0);//(unsigned)time(NULL));
+
+	int nz = is2d ? 2 : n;
 	
 	if( n )
 	{
@@ -195,12 +197,12 @@ int main(int argc, char *argv[])
 		{
 			for (int j = 0; j < n; j++)
 			{
-				for (int k = 0; k < n; k++)
+				for (int k = 0; k < nz; k++)
 				{
 					Storage::real xyz[3];
 					xyz[0] = i * 1.0 / (n - 1);
 					xyz[1] = j * 1.0 / (n - 1);
-					xyz[2] = k * 1.0 / (n - 1);
+					xyz[2] = k * 1.0 / (nz - 1);
 					Node c = mesh->CreateNode(xyz);
 					if (c->LocalID() != V_ID(i, j, k)) std::cout << "v_id = " << c->LocalID() << ", [i,j,k] = " << V_ID(i, j, k) << std::endl;
 				}
@@ -214,7 +216,7 @@ int main(int argc, char *argv[])
 		{
 			for (int j = 1; j < n; j++)
 			{
-				for (int k = 1; k < n; k++)
+				for (int k = 1; k < nz; k++)
 				{
 					
 					ElementArray<Node> verts(mesh,8);

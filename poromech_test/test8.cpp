@@ -156,8 +156,6 @@ rMatrix Test8::BCMech_coef(double _x, double _y, double _z, double _t) const
 
 void Test8::SetBC(Mesh & m, double T, MarkerType boundary) const
 {
-	Automatizator * aut = Automatizator::GetCurrent();
-	Automatizator::RemoveCurrent();
 	TagRealArray tag_BC_flow = m.GetTag("BOUNDARY_CONDITION_FLOW");
 	TagRealArray tag_BC_mech = m.GetTag("BOUNDARY_CONDITION_ELASTIC");
 #if defined(USE_OMP)
@@ -195,7 +193,6 @@ void Test8::SetBC(Mesh & m, double T, MarkerType boundary) const
 			}
 		}
 	}
-	Automatizator::MakeCurrent(aut);
 }
 
 

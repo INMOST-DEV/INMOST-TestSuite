@@ -208,8 +208,6 @@ void Test6::SetForce(Mesh & m, const INMOST::dynamic_variable & p, double T) con
 
 void Test6::SetBC(Mesh & m, double T, MarkerType boundary) const
 {
-	Automatizator * aut = Automatizator::GetCurrent();
-	Automatizator::RemoveCurrent();
 	TagRealArray tag_BC_flow = m.GetTag("BOUNDARY_CONDITION_FLOW");
 	TagRealArray tag_BC_mech = m.GetTag("BOUNDARY_CONDITION_ELASTIC");
 #if defined(USE_OMP)
@@ -245,7 +243,6 @@ void Test6::SetBC(Mesh & m, double T, MarkerType boundary) const
 			}
 		}
 	}
-	Automatizator::MakeCurrent(aut);
 }
 
 
