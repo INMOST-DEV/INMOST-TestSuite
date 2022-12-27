@@ -109,8 +109,8 @@ int main(int argc, char ** argv)
 	t[MEASURE] = CELL | FACE;
 	t[ORIENTATION] = FACE;
 	t[NORMAL] = FACE;
-	//t[BARYCENTER] = CELL;
-	t[CENTROID] = CELL | FACE | EDGE | NODE;
+	t[BARYCENTER] = CELL | FACE | EDGE;
+	t[CENTROID] = CELL | FACE | EDGE;
 	m->AssignGlobalID(CELL|FACE);
 	//m->RemoveGeometricData(t);
 	m->PrepareGeometricData(t);
@@ -176,7 +176,8 @@ int main(int argc, char ** argv)
 	
 	for(Mesh::iteratorElement it = m->BeginElement(CELL|FACE|EDGE|NODE); it != m->EndElement(); ++it)
 	{
-		it->Centroid(c);
+		//it->Centroid(c);
+		it->Barycenter(c);
 		Storage::real x = c[0];//(c[0]-min[0])/(max[0]-min[0]);
 		Storage::real y = c[1];//(c[1]-min[1])/(max[1]-min[1]);
 		Storage::real z = c[2];//(c[2]-min[2])/(max[2]-min[2]);

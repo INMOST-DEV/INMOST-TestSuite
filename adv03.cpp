@@ -15,17 +15,14 @@ int main(int argc, char *argv[])
 
 	if (argc < 2)
 	{
-		std::cout << "Usage: " << argv[0] << " nx|grid_name [alpha=0.4] [outer_boundary_pressure=0.0] [inner_boundary_pressure=1.0] [cut_grid=1] [is2d=1]" << std::endl;
+		std::cout << "Usage: " << argv[0] << " nx|grid_name [alpha=0.4] [cut_grid=1]" << std::endl;
 		return -1;
 	}
 
 	Mesh * mesh;
 	double alpha=0.2;
 	double h;
-	double outer_boundary_pressure = 0.0;
-	double inner_boundary_pressure = 1.0;
 	int cut_grid = 1;
-	int is2d = 0;
 	int n = 20 + 1;
 
 	mesh = new Mesh();
@@ -53,35 +50,15 @@ int main(int argc, char *argv[])
 
 	std::cout << "Alpha: " << alpha << std::endl;
 
+	
 	if( argc > 3 )
-		outer_boundary_pressure = atof(argv[3]);
-
-	if( argc > 4 )
-		inner_boundary_pressure = atof(argv[4]);
-
-	std::cout << "Boundaries: " << outer_boundary_pressure << " " << inner_boundary_pressure << std::endl;
-
-	if( argc > 5 )
-		cut_grid = atoi(argv[5]);
+		cut_grid = atoi(argv[3]);
 
 	if( cut_grid )
 		std::cout << "Cutting center of the grid." << std::endl;
 
-	if( argc > 6 )
-		is2d = atoi(argv[6]);
-
-	if( is2d )
-		std::cout << "Using 2d setup" << std::endl;
-	else
-		std::cout << "Using 3d setup" << std::endl;
-
-	double ratio = 1000;
-	if( argc > 7 )
-		ratio = atof(argv[7]);
-
-	std::cout << "Anisotropy ratio: " << ratio << std::endl;
-
-
+	
+	
 	srand(0);//(unsigned)time(NULL));
 
 	if( n )
@@ -261,7 +238,7 @@ int main(int argc, char *argv[])
 		it->Real(refflux) = flux;
 		it->Real(velocity) = velnrm;
 
-		if( it->Boundary() && z > 0+eps && z < 1-eps)
+		if( it->Boundary() )//&& z > 0+eps && z < 1-eps)
 		{
 			Storage::real_array bc = it->RealArray(bndcond);
 			bc[0] = 1;
