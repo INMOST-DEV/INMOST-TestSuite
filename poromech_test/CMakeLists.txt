@@ -22,11 +22,11 @@ set_property(TARGET POROMECH_TEST PROPERTY PUBLIC_HEADER abstract_test.h)
 target_include_directories(POROMECH_TEST
                            PUBLIC
                            "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>"
-                           "$<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>")
+			   "$<INSTALL_INTERFACE:${CMAKE_INSTALL_PREFIX}/include>")
 
 #target_include_directories(POROMECH_TEST INTERFACE .)
 
-#install(FILES abstract_test.h DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
+#install(FILES abstract_test.h DESTINATION ${CMAKE_INSTALL_PREFIX}/include)
 
 install(TARGETS POROMECH_TEST EXPORT POROMECH_TEST-Targets 
         ARCHIVE DESTINATION lib
@@ -36,13 +36,13 @@ install(TARGETS POROMECH_TEST EXPORT POROMECH_TEST-Targets
 install(EXPORT POROMECH_TEST-Targets
         FILE POROMECH_TEST-Targets.cmake
 #		NAMESPACE POROMECH_TEST::
-        DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/POROMECH_TEST)
+DESTINATION ${CMAKE_INSTALL_PREFIX}/cmake/POROMECH_TEST)
 
 include(CMakePackageConfigHelpers)
 
 configure_package_config_file(${CMAKE_CURRENT_SOURCE_DIR}/Config.cmake.in
   "${CMAKE_CURRENT_BINARY_DIR}/POROMECH_TESTConfig.cmake"
-  INSTALL_DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/POROMECH_TEST)
+  INSTALL_DESTINATION ${CMAKE_INSTALL_PREFIX}/cmake/POROMECH_TEST)
 
 set(version 0.1.1)
 set_property(TARGET POROMECH_TEST PROPERTY VERSION ${version})
@@ -58,7 +58,7 @@ write_basic_package_version_file( "${CMAKE_CURRENT_BINARY_DIR}/POROMECH_TESTConf
 install(FILES
           "${CMAKE_CURRENT_BINARY_DIR}/POROMECH_TESTConfig.cmake"
           "${CMAKE_CURRENT_BINARY_DIR}/POROMECH_TESTConfigVersion.cmake"
-        DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/POROMECH_TEST)
+	  DESTINATION ${CMAKE_INSTALL_PREFIX}/cmake/POROMECH_TEST)
 
 export(EXPORT POROMECH_TEST-Targets 
        FILE "${CMAKE_CURRENT_BINARY_DIR}/cmake/POROMECH_TEST-Targets.cmake"
