@@ -33,6 +33,8 @@ list(APPEND EXECS
 
 add_executable(test_diff_single_well single_well.cpp)
 add_executable(test_diff_circular_perm circular_perm.cpp)
+add_executable(test_diff_zigzag_perm zigzag_perm.cpp)
+add_executable(test_diff_lognorm_perm lognorm_perm.cpp)
 add_executable(test_diff_channels_perm channels_perm.cpp)
 add_executable(test_diff_locking_perm locking_perm.cpp)
 add_executable(test_diff_fvca5_test1_1 fvca5_test1_1.cpp)
@@ -55,6 +57,8 @@ add_executable(test_diff_linear_sol linear_sol.cpp)
 list(APPEND EXECS 
 	test_diff_single_well 
 	test_diff_circular_perm 
+	test_diff_zigzag_perm 
+	test_diff_lognorm_perm 
 	test_diff_channels_perm
 	test_diff_locking_perm
 	test_diff_fvca5_test1_1
