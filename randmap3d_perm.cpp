@@ -169,6 +169,7 @@ int main(int argc, char ** argv)
 		c[2] *= L;
 	}
 
+	TagReal tag_C = m->CreateTag("C", DATA_REAL, CELL, NONE, 1);
 
 	std::cout << "Setting randmap permeability" << std::endl;
 	const Storage::real h = 1.0 / 25.0, hz = 1.0 / (L * 25.0);
@@ -177,6 +178,10 @@ int main(int argc, char ** argv)
 		Storage::real c[3];
 		it->Centroid(c);
 		Storage::real x = c[0], y = c[1], z = c[2] / L;
+
+		if (z * L < 1.0)
+			tag_C[*it] = 1.0;
+		else tag_C[*it] = 0.0;
 
 		x = floor(x / h) * h + 0.5 * h;
 		y = floor(y / h) * h + 0.5 * h;
