@@ -169,7 +169,7 @@ int main(int argc, char ** argv)
 		c[2] *= L;
 	}
 
-	TagReal tag_C = m->CreateTag("C", DATA_REAL, CELL, NONE, 1);
+	TagReal tag_C = m->CreateTag("Fraction", DATA_REAL, CELL, NONE, 1);
 
 	std::cout << "Setting randmap permeability" << std::endl;
 	const Storage::real h = 1.0 / 25.0, hz = 1.0 / (L * 25.0);
@@ -202,18 +202,18 @@ int main(int argc, char ** argv)
 			//pressure equals 40
 			tag_BCP[*it][0] = 1.0;
 			tag_BCP[*it][1] = 0.0;
-			tag_BCP[*it][0] = 40.0;
+			tag_BCP[*it][2] = 40.0;
 			//fraction equals 1
 			tag_BCC[*it][0] = 1.0;
 			tag_BCC[*it][1] = 0.0;
-			tag_BCC[*it][0] = 1.0;
+			tag_BCC[*it][2] = 1.0;
 		}
 		if (fabs(nrm[2] - 1.0) < 1.0e-3) //front side
 		{
 			//pressure equals 0
 			tag_BCP[*it][0] = 1.0;
 			tag_BCP[*it][1] = 0.0;
-			tag_BCP[*it][0] = 0.0;
+			tag_BCP[*it][2] = 0.0;
 		}
 	}
 
